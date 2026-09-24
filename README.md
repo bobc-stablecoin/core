@@ -14,6 +14,8 @@ the minimum ratio. Borrow interest grows the debt and is minted to the engine. T
 when the position is closed or liquidated. Repayment and redemption burn principal BOBC from the caller.
 Supply equals outstanding debt plus bad debt recorded when a liquidation cannot cover the full debt.
 
+A walk through the numbers, then a pointer into the Vyper, is in [docs/README.md](docs/README.md).
+
 ## Contracts
 
 - `src/bobc.vy`: composes Snekmate's ERC-20/EIP-2612 modules. Only the bound VaultEngine can mint or burn.
