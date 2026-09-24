@@ -25,8 +25,8 @@ import interfaces.IERC4626 as IERC4626
 import interfaces.IPegOracle as IPegOracle
 
 
-# @dev The 18-decimal fixed-point scaling factor.
-_ONE: constant(uint256) = 10**18
+# @dev The 18-decimal WAD scaling factor.
+_WAD: constant(uint256) = 10**18
 
 
 # @dev The denominator used for basis-point calculations.
@@ -141,7 +141,7 @@ def mint(assets: uint256) -> uint256:
     assert self._reserve_assets() + assets <= MAX_TVL_ASSETS, "Engine: max TVL"
     assert extcall IERC20(ASSET).transferFrom(msg.sender, self, assets), "Engine: transfer failed"
     extcall IERC4626(VAULT).deposit(assets, self)
-    bobc_out: uint256 = assets * rate // _ONE
+    bobc_out: uint256 = assets * rate // _WAD
     assert bobc_out > 0, "Engine: zero BOBC"
     extcall IBOBC(BOBC).mint(msg.sender, bobc_out)
     self._assert_solvent(rate)
@@ -154,7 +154,7 @@ def redeem(bobc_amount: uint256) -> uint256:
     """Burn BOBC and withdraw the oracle-equivalent amount of crvUSD."""
     assert bobc_amount > 0, "Engine: zero BOBC"
     rate: uint256 = self._checked_rate()
-    assets_out: uint256 = bobc_amount * _ONE // rate
+    assets_out: uint256 = bobc_amount * _WAD // rate
     assert assets_out > 0, "Engine: zero assets"
     extcall IBOBC(BOBC).burn(msg.sender, bobc_amount)
     extcall IERC4626(VAULT).withdraw(assets_out, msg.sender, self)
@@ -210,8 +210,8 @@ def collateral_ratio() -> uint256:
     supply: uint256 = staticcall IBOBC(BOBC).totalSupply()
     if supply == 0:
         return max_value(uint256)
-    gross_value: uint256 = self._reserve_assets() * self._checked_rate() // _ONE
-    return gross_value * _ONE // supply
+    gross_value: uint256 = self._reserve_assets() * self._checked_rate() // _WAD
+    return gross_value * _WAD // supply
 
 
 @internal
@@ -224,11 +224,11 @@ def _checked_rate() -> uint256:
     assert convert(updated_at, uint256) <= block.timestamp, "Engine: future oracle"
     assert block.timestamp - convert(updated_at, uint256) <= MAX_STALENESS, "Engine: stale oracle"
     deviation: uint256 = 0
-    if rate >= _ONE:
-        deviation = rate - _ONE
+    if rate >= _WAD:
+        deviation = rate - _WAD
     else:
-        deviation = _ONE - rate
-    assert deviation * _BPS <= _ONE * MAX_DEVIATION_BPS, "Engine: rate deviation"
+        deviation = _WAD - rate
+    assert deviation * _BPS <= _WAD * MAX_DEVIATION_BPS, "Engine: rate deviation"
     return rate
 
 
@@ -242,7 +242,7 @@ def _reserve_assets() -> uint256:
 @internal
 @view
 def _backing_value(rate: uint256) -> uint256:
-    gross_value: uint256 = self._reserve_assets() * rate // _ONE
+    gross_value: uint256 = self._reserve_assets() * rate // _WAD
     return gross_value * (_BPS - BUFFER_BPS) // _BPS
 
 
