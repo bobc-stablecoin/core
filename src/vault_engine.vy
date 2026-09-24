@@ -69,14 +69,6 @@ MAX_DEVIATION_BPS: public(immutable(uint256))
 CASHBACK: public(immutable(address))
 
 
-# @dev Returns the optional NameNFT used by the cashback contract.
-NAME_NFT: public(immutable(address))
-
-
-# @dev Returns cashback's configured NameNFT-gating policy for discovery.
-REQUIRE_NAME: public(immutable(bool))
-
-
 # @dev Returns the deployment owner authorised for the one-time premint.
 owner: public(address)
 
@@ -116,8 +108,6 @@ def __init__(
     max_staleness_: uint256,
     max_deviation_bps_: uint256,
     cashback_: address,
-    name_nft_: address,
-    require_name_: bool,
 ):
     assert bobc_ != empty(address), "Engine: zero BOBC"
     assert vault_ != empty(address), "Engine: zero vault"
@@ -138,8 +128,6 @@ def __init__(
     MAX_STALENESS = max_staleness_
     MAX_DEVIATION_BPS = max_deviation_bps_
     CASHBACK = cashback_
-    NAME_NFT = name_nft_
-    REQUIRE_NAME = require_name_
     self.owner = msg.sender
 
     assert extcall IERC20(asset_).approve(vault_, max_value(uint256)), "Engine: approve failed"

@@ -65,7 +65,7 @@ def test_t5_max_tvl_blocks_mint():
     token = bobc.deploy()
     engine = vault_engine.deploy(
         token.address, vault.address, asset.address, oracle.address, 0, 100 * ONE, 3_600, 500,
-        ZERO_ADDRESS, ZERO_ADDRESS, False,
+        ZERO_ADDRESS,
     )
     token.bind_vault_engine(engine.address)
     asset.mint(account, 101 * ONE)
@@ -86,7 +86,7 @@ def test_t6_buffer_requires_reserve_surplus():
     token = bobc.deploy()
     engine = vault_engine.deploy(
         token.address, vault.address, asset.address, oracle.address, 100, 1_000 * ONE, 3_600, 500,
-        ZERO_ADDRESS, ZERO_ADDRESS, False,
+        ZERO_ADDRESS,
     )
     token.bind_vault_engine(engine.address, sender=deployer)
     asset.mint(account, 200 * ONE)

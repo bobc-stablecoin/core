@@ -38,7 +38,7 @@ def protocol() -> Protocol:
         vault = MOCK_ERC4626.deploy(asset.address)
         oracle = MOCK_PEG_ORACLE.deploy(ONE)
         token = bobc.deploy()
-        rewards = cashback.deploy(token.address, ZERO_ADDRESS, 100, False)
+        rewards = cashback.deploy(token.address, 100)
         engine = vault_engine.deploy(
             token.address,
             vault.address,
@@ -49,8 +49,6 @@ def protocol() -> Protocol:
             3_600,
             2_000,
             rewards.address,
-            ZERO_ADDRESS,
-            False,
         )
         token.bind_vault_engine(engine.address)
 

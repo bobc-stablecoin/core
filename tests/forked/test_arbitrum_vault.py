@@ -22,7 +22,7 @@ def test_t12_real_vault_deposit_and_withdraw():
     token = bobc.deploy()
     engine = vault_engine.deploy(
         token.address, VAULT, CRVUSD, oracle.address, 0, 10_000_000 * ONE, 3_600, 500,
-        ZERO_ADDRESS, ZERO_ADDRESS, False,
+        ZERO_ADDRESS,
     )
     token.bind_vault_engine(engine.address)
     amount = ONE

@@ -7,7 +7,6 @@
     "vaultEngine": {"address": null, "deploymentTx": null},
     "cashback": {"address": null, "deploymentTx": null},
     "pegOracle": {"address": null, "source": "bobc-cre"},
-    "nameNFT": {"address": null, "source": "bobc-names", "optional": true},
     "llamaLendVault": {"address": "0xeEaF2ccB73A01deb38Eca2947d963D64CfDe6A32"},
     "crvUSD": {"address": "0x498Bf2B1e120FeD3ad3D42EA2165E9b73f99C1e5"}
   },
@@ -17,7 +16,6 @@
     "maxStaleness": null,
     "maxDeviationBps": null,
     "cashbackBps": 100,
-    "requireName": false,
     "cashbackPremint": null
   }
 }
