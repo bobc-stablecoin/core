@@ -1,0 +1,7 @@
+[project]
+name = "bobc-core"
+version = "0.1.0"
+description = "Reserve-vault stablecoin protocol for BOBC on Arbitrum One"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["moccasin>=0.4.2", "snekmate==0.1.2"]

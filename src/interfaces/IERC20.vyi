@@ -1,0 +1,23 @@
+# pragma version ~=0.4.3
+
+
+@external
+@view
+def totalSupply() -> uint256: ...
+
+
+@external
+@view
+def balanceOf(account: address) -> uint256: ...
+
+
+@external
+def transfer(receiver: address, amount: uint256) -> bool: ...
+
+
+@external
+def transferFrom(owner: address, receiver: address, amount: uint256) -> bool: ...
+
+
+@external
+def approve(spender: address, amount: uint256) -> bool: ...

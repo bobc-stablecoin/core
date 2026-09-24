@@ -1,0 +1,14 @@
+# pragma version ~=0.4.3
+
+
+@external
+@view
+def totalSupply() -> uint256: ...
+
+
+@external
+def mint(receiver: address, amount: uint256): ...
+
+
+@external
+def burn(owner: address, amount: uint256): ...

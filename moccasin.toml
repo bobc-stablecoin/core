@@ -1,0 +1,21 @@
+[project]
+src = "src"
+out = "out"
+dot_env = ".env"
+dependencies = ["snekmate==0.1.2"]
+
+[networks.pyevm]
+is_zksync = false
+
+[networks.anvil]
+url = "http://127.0.0.1:8545"
+prompt_live = false
+save_to_db = false
+chain_id = 31337
+
+[networks.arbitrum-fork]
+url = "$ARBITRUM_RPC"
+chain_id = 42161
+fork = true
+prompt_live = false
+save_to_db = false
