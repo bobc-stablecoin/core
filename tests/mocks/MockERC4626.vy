@@ -59,3 +59,18 @@ def withdraw(assets: uint256, receiver: address, owner: address) -> uint256:
     self.totalSupply -= shares
     assert extcall IERC20(asset).transfer(receiver, assets), "Vault: transfer failed"
     return shares
+
+
+@external
+def redeem(shares: uint256, receiver: address, owner: address) -> uint256:
+    """Burn exact shares and transfer the assets they represent."""
+    assert shares > 0, "Vault: zero shares"
+    assert owner == msg.sender, "Vault: unsupported allowance"
+    assert self.balanceOf[owner] >= shares, "Vault: insufficient shares"
+    assets: uint256 = shares
+    if self.totalSupply > 0:
+        assets = shares * staticcall IERC20(asset).balanceOf(self) // self.totalSupply
+    self.balanceOf[owner] -= shares
+    self.totalSupply -= shares
+    assert extcall IERC20(asset).transfer(receiver, assets), "Vault: transfer failed"
+    return assets

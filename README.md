@@ -1,23 +1,28 @@
 # bobc-core
 
-BOBC is a fully reserved stablecoin protocol for Arbitrum One, written in Vyper and built with
+BOBC is a collateralized debt protocol for Arbitrum One, written in Vyper and built with
 [Moccasin](https://github.com/Cyfrin/moccasin).
 
-**This is a reserve vault, not a CDP.** A user deposits crvUSD, the engine supplies it to the Curve LlamaLend
-ERC-4626 lender vault, and BOBC is minted at the PegOracle rate. BOBC users do not borrow, post collateral, or face
-LLAMMA liquidation or soft-liquidation.
+A borrower deposits crvUSD. The engine supplies it to the Curve LlamaLend ERC-4626 lender vault and
+mints BOBC as that borrower's debt, capped by a minimum collateral ratio. One address has one position.
+The target is 1 BOBC ≈ 1 BOB. Holders burn BOBC to redeem crvUSD at the live PegOracle rate from the
+open position charging the lowest interest. A position below the liquidation ratio can be closed out by
+a caller who burns its debt. There is no LLAMMA position and no parity band around 1 BOB per USD.
 
-The target is 1 BOBC ≈ 1 BOB. The peg is live oracle pricing plus full-reserve redemption and arbitrage. BOBC below
-fair value can be bought and redeemed for crvUSD; BOBC above fair value can be minted from crvUSD and sold. V1
-assumes crvUSD ≈ USD.
+LlamaLend appreciation belongs to the borrower and can be withdrawn while the position stays at or above
+the minimum ratio. Borrow interest grows the debt and is minted to the engine. That balance is burned
+when the position is closed or liquidated. Repayment and redemption burn principal BOBC from the caller.
+Supply equals outstanding debt plus bad debt recorded when a liquidation cannot cover the full debt.
 
 ## Contracts
 
 - `src/bobc.vy`: composes Snekmate's ERC-20/EIP-2612 modules. Only the bound VaultEngine can mint or burn.
-- `src/vault_engine.vy`: lender-side ERC-4626 deposits and withdrawals, oracle guards, TVL cap, and buffer solvency.
-- `src/cashback.vy`: transfers payments and rebates from finite, preminted BOBC. It has no mint role.
+- `src/vault_engine.vy`: per-address collateral, debt, interest, redemption, and liquidation.
+- `src/sorted_positions.vy`: hint-checked list of borrowers in ascending annual-rate order.
+- `src/cashback.vy`: transfers payments and rebates from BOBC it already holds. It has no mint role.
 
-The engine stores the optional `CASHBACK` deployment address. The PegOracle implementation lives in a sibling repository.
+The PegOracle implementation lives in a sibling repository. Cashback inventory is a later transfer of
+already-minted BOBC, not an engine premint.
 
 ## Arbitrum One addresses
 
@@ -27,8 +32,9 @@ The engine stores the optional `CASHBACK` deployment address. The PegOracle impl
 | crvUSD | `0x498Bf2B1e120FeD3ad3D42EA2165E9b73f99C1e5` |
 | PegOracle | Set `PEG_ORACLE_ADDRESS` from `bobc-cre` |
 
-PegOracle exposes `latest() -> (uint256 rate, uint64 updated_at)`, with rate as 1e18-scaled BOB per USD. Deviation
-is measured against 1e18. Mint and redeem both stop for a stale, future, zero, or out-of-band sample.
+PegOracle exposes `latest() -> (uint256 rate, uint64 updated_at)`, with rate as 1e18-scaled BOB per USD.
+Opening, adjusting, redeeming, and liquidating all stop for a stale, future, or zero sample. A fresh rate
+outside any fixed band still updates collateral ratios.
 
 ## Development
 
@@ -52,8 +58,8 @@ export ARBITRUM_RPC="https://..."
 uv run mox test tests/forked/test_arbitrum_vault.py -v
 ```
 
-T12 uses the real vault and crvUSD contracts, funds a generated account only in fork state, and performs a small
-deposit/withdraw round trip. No live transaction is broadcast.
+T12 uses the real vault and crvUSD contracts, funds a generated account only in fork state, and opens then closes
+a small position. No live transaction is broadcast.
 
 ## Deployment configuration
 
@@ -62,32 +68,34 @@ deposit/withdraw round trip. No live transaction is broadcast.
 ```bash
 export PEG_ORACLE_ADDRESS="0x..."       # required
 export ARBITRUM_RPC="https://..."       # required for Arbitrum execution
-export BUFFER_BPS="0"                   # choose after reserve policy review
-export MAX_TVL_ASSETS="1000000000000000000000000"
+export MIN_CR="1430000000000000000"     # 143%
+export LIQ_CR="1200000000000000000"     # 120%
+export PENALTY_BPS="500"                # 4% caller, 1% insurance
+export MAX_COLLATERAL_ASSETS="1000000000000000000000000"
 export MAX_STALENESS="3600"
-export MAX_DEVIATION_BPS="500"
+export MIN_DEBT="1000000000000000000000"
+export MIN_ANNUAL_RATE="5000000000000000"   # 0.5%
+export MAX_ANNUAL_RATE="250000000000000000" # 25%
 export CASHBACK_BPS="100"               # 1%
 
 uv run mox run deploy --network arbitrum-fork
 ```
 
 The helper deploys BOBC, Cashback, and VaultEngine, then irreversibly binds the token's mint/burn role to the
-engine. It does not automatically premint rewards: first supply reserve surplus to the engine's vault position,
-then call the one-time `premint_cashback(amount)`.
+engine. It does not fund the cashback contract.
 
-### Buffer bootstrap invariant
-
-The locked mint formula issues the full `assets * rate / 1e18`. When `BUFFER_BPS > 0`, a new deposit by itself
-cannot satisfy haircut solvency; the deployment needs pre-existing reserve surplus. Cashback inventory must also
-be fully backed. The engine checks both conditions atomically, and T6 covers the bootstrap.
+The minimum collateral ratio must sit above the liquidation ratio, and the liquidation ratio must leave room for
+the penalty. `MIN_CR` of 143% is the 9.1-versus-13 borrow cushion: at 13 BOB per USD, 1,430 crvUSD supports
+1,000 BOBC.
 
 `deployments/arbitrum.json` is a publication schema. Replace `null` contract addresses and transaction hashes only
 after an actual deployment.
 
 ## Security status
 
-Unaudited. The engine deliberately contains no borrowing, collateral positions, LLAMMA integration, liquidation,
-or reward minting. See [DESIGN_BRIEF.md](./DESIGN_BRIEF.md) for the locked design and risk boundaries.
+Unaudited. Borrowers take the BOB-per-USD move on their own collateral ratio. Redemption is the holder exit.
+Liquidation, including the crvUSD insurance slice of the penalty, is the solvency path. A shortfall that insurance
+cannot cover is stored as `bad_debt` and left in circulation.
 
 ## License
 

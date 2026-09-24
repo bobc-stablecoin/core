@@ -11,11 +11,14 @@
     "crvUSD": {"address": "0x498Bf2B1e120FeD3ad3D42EA2165E9b73f99C1e5"}
   },
   "parameters": {
-    "bufferBps": null,
-    "maxTvlAssets": null,
+    "minCr": null,
+    "liqCr": null,
+    "penaltyBps": null,
+    "maxCollateralAssets": null,
     "maxStaleness": null,
-    "maxDeviationBps": null,
-    "cashbackBps": 100,
-    "cashbackPremint": null
+    "minDebt": null,
+    "minAnnualRate": null,
+    "maxAnnualRate": null,
+    "cashbackBps": 100
   }
 }

@@ -3,8 +3,8 @@ import os
 import boa
 import pytest
 
-from src import bobc, vault_engine
-from tests.conftest import MAX_UINT256, ONE, ZERO_ADDRESS
+from src import bobc
+from tests.conftest import ONE, RATE_LOW, deploy_engine, open_position
 from tests.mocks.deployers import MOCK_ERC20, MOCK_PEG_ORACLE
 
 
@@ -13,23 +13,24 @@ CRVUSD = "0x498Bf2B1e120FeD3ad3D42EA2165E9b73f99C1e5"
 
 
 @pytest.mark.skipif(not os.getenv("ARBITRUM_RPC"), reason="ARBITRUM_RPC is not set")
-def test_t12_real_vault_deposit_and_withdraw():
-    """T12: use the real Arbitrum lender vault for a small mint/redeem round trip."""
+def test_t12_real_vault_open_and_close():
+    """Open a small position against the real Arbitrum lender vault and close it."""
     boa.fork(os.environ["ARBITRUM_RPC"])
     user = boa.env.generate_address("fork user")
     asset = MOCK_ERC20.at(CRVUSD)
+    vault = type("Vault", (), {"address": VAULT})()
     oracle = MOCK_PEG_ORACLE.deploy(ONE)
     token = bobc.deploy()
-    engine = vault_engine.deploy(
-        token.address, VAULT, CRVUSD, oracle.address, 0, 10_000_000 * ONE, 3_600, 500,
-        ZERO_ADDRESS,
-    )
+    engine = deploy_engine(token, vault, asset, oracle, min_debt=ONE, max_collateral=10_000_000 * ONE)
     token.bind_vault_engine(engine.address)
-    amount = ONE
+    amount = 1_000 * ONE
     boa.deal(asset, user, amount)
-    asset.approve(engine.address, MAX_UINT256, sender=user)
+    asset.approve(engine.address, amount, sender=user)
 
-    bobc_out = engine.mint(amount, sender=user)
-    assets_out = engine.redeem(bobc_out, sender=user)
+    open_position(engine, amount, RATE_LOW, user)
+    engine.close_position(sender=user)
 
-    assert abs(assets_out - amount) <= 1
+    returned = asset.balanceOf(user)
+    assert returned > 0
+    assert returned * 1_000 >= amount * 990
+    assert token.balanceOf(user) == 0
