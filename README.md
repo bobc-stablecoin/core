@@ -24,7 +24,9 @@ A walk through the numbers, then a pointer into the Vyper, is in [docs/README.md
 - `src/cashback.vy`: transfers payments and rebates from BOBC it already holds. It has no mint role.
 
 The PegOracle implementation lives in a sibling repository. Cashback inventory is a later transfer of
-already-minted BOBC, not an engine premint.
+already-minted BOBC, not an engine premint. Cashback deploys at 100 BPS with an empty merchant list; the
+deployer initially owns its configuration and must approve merchant receivers before funding the reward pool.
+The rate can be set from 0 to 200 BPS; zero disables rebates while approved payments still forward. Ownership can be handed off with a two-step transfer.
 
 ## Arbitrum One addresses
 
@@ -78,13 +80,17 @@ export MAX_STALENESS="3600"
 export MIN_DEBT="1000000000000000000000"
 export MIN_ANNUAL_RATE="5000000000000000"   # 0.5%
 export MAX_ANNUAL_RATE="250000000000000000" # 25%
-export CASHBACK_BPS="100"               # 1%
+export CASHBACK_BPS="100"               # 1%, capped at 200 BPS
 
 uv run mox run deploy --network arbitrum-fork
 ```
 
 The helper deploys BOBC, Cashback, and VaultEngine, then irreversibly binds the token's mint/burn role to the
-engine. It does not fund the cashback contract.
+engine. It does not fund the cashback contract. Cashback starts with no approved merchants and the deployer as
+owner. Add merchants with `add_merchant` or `set_merchants` before transferring BOBC into Cashback; `pay` only
+accepts an approved receiver distinct from the payer. The owner can set the rate to 0 to disable rebates, up to
+200 BPS, and can transfer ownership by calling `transfer_ownership` followed by the pending owner's
+`accept_ownership`.
 
 The minimum collateral ratio must sit above the liquidation ratio, and the liquidation ratio must leave room for
 the penalty. `MIN_CR` of 143% is the 9.1-versus-13 borrow cushion: at 13 BOB per USD, 1,430 crvUSD supports

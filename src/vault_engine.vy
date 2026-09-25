@@ -478,11 +478,14 @@ def _redeem_from(account: address, remaining: uint256, rate: uint256) -> uint256
     self.total_shares -= shares_burned
     pos.debt -= pay
     self.total_debt -= pay
-    if pos.debt == 0:
-        if pos.shares > 0:
-            self._redeem_all(pos.shares, account)
-        sorted_positions._remove(account)
-        self._positions[account] = self._zero_position()
+    if pos.debt == pos.fees:
+        # The last principal was redeemed. Retire the fee-only node and burn
+        # its accrued BOBC from surplus so it cannot block later redemptions.
+        fee_debt: uint256 = pos.fees
+        remaining_shares: uint256 = pos.shares
+        self._clear_position(account, pos)
+        self._burn_fee(fee_debt)
+        self._redeem_all(remaining_shares, account)
     else:
         assert pos.shares > 0, "Engine: empty collateral"
         self._positions[account] = pos

@@ -255,3 +255,52 @@ def test_partial_redemption_leaves_the_debt_floor():
     assert assets_out == 900 * ONE
     assert engine.position(account)[1] == 100 * ONE
     assert_books(engine, token)
+
+
+def test_redemption_cleans_32_fee_only_positions_and_returns_collateral():
+    """Fee-only nodes from 32 minimum-rate borrowers cannot starve later redemption."""
+    asset = MOCK_ERC20.deploy("Curve USD", "crvUSD")
+    vault = MOCK_ERC4626.deploy(asset.address)
+    oracle = MOCK_PEG_ORACLE.deploy(ONE)
+    token = bobc.deploy()
+    engine = deploy_engine(token, vault, asset, oracle, min_debt=1_000 * ONE)
+    token.bind_vault_engine(engine.address)
+
+    borrowers = [boa.env.generate_address(f"minimum-rate borrower {i}") for i in range(32)]
+    holder = boa.env.generate_address("later-rate holder")
+    redeemer = boa.env.generate_address("redemption holder")
+    collateral = 1_430 * ONE
+
+    for borrower in borrowers:
+        asset.mint(borrower, collateral)
+        asset.approve(engine.address, MAX_UINT256, sender=borrower)
+        assert open_position(engine, collateral, RATE_LOW, borrower) == 1_000 * ONE
+    asset.mint(holder, collateral)
+    asset.approve(engine.address, MAX_UINT256, sender=holder)
+    assert open_position(engine, collateral, RATE_MID, holder) == 1_000 * ONE
+
+    # Deployment uses a 0.5% minimum annual rate and 32 redemption steps.
+    boa.env.time_travel(seconds=YEAR)
+    oracle.setUpdatedAt(boa.env.timestamp)
+    for borrower in borrowers:
+        token.transfer(redeemer, 1_000 * ONE, sender=borrower)
+
+    assets_out = engine.redeem(32_000 * ONE, 32, sender=redeemer)
+
+    assert assets_out == 32_000 * ONE
+    assert engine.head() == holder
+    assert engine.next(holder) == ZERO_ADDRESS
+    for borrower in borrowers:
+        assert not engine.position(borrower)[5]
+        assert asset.balanceOf(borrower) == 430 * ONE
+    assert_books(engine, token)
+
+    # The higher-rate position remains redeemable after the full 32-node pass.
+    holder_balance_before = asset.balanceOf(holder)
+    holder_assets_out = engine.redeem(1_000 * ONE, 32, sender=holder)
+
+    assert holder_assets_out == 1_000 * ONE
+    assert asset.balanceOf(holder) == holder_balance_before + collateral
+    assert engine.head() == ZERO_ADDRESS
+    assert not engine.position(holder)[5]
+    assert_books(engine, token)
