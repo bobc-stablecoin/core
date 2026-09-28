@@ -8,10 +8,10 @@ The engine does not pick a position at random, and it does not pick the one that
 
 The cheap loan is the first one a redemption shrinks. The expensive loan is last.
 
-Alice charges 0.5%, Bob 2%, Dan 8%. Each has locked 1,098.90 crvUSD and owes 10,000 BOBC, oracle at 13. A holder burns 1,000 BOBC:
+Alice charges 0.5%, Bob 2%, Dan 8%. Each has locked 1,100 crvUSD and owes 10,000 BOBC, oracle at 13. A holder burns 1,000 BOBC:
 
-- Alice gives up 76.92 crvUSD. Her debt falls to 9,000. She has 1,021.98 crvUSD left.
-- Her ratio rises from 142.9% to `1,021.98 * 13 / 9,000 = 147.6%`.
+- Alice gives up 76.923076 crvUSD. Her debt falls to 9,000. She has 1,023.076923 crvUSD left.
+- Her ratio rises from 143% to `1,023.076923 * 13 / 9,000 = 147.78%`.
 - Bob and Dan are untouched.
 
 She loses the LlamaLend yield on the 76.92 crvUSD, and she loses the size of the loan she wanted. She pays no penalty. The cushion stays with her. That is the whole cost of having chosen the cheap rate.
@@ -24,9 +24,9 @@ Minting in order to redeem is a loss. Opening a loan locks about 143 BOB of crvU
 
 The same three positions. A holder burns 25,000 BOBC.
 
-Alice's whole 10,000 is taken first. That pulls `10,000 / 13 = 769.23` crvUSD. The other **329.67 crvUSD** is her cushion, and it is returned to her. Her loan is removed from the list. Bob is closed the same way and also receives 329.67 crvUSD.
+Alice's whole 10,000 is taken first. That pulls `10,000 / 13 = 769.23` crvUSD. The other **330.77 crvUSD** is her cushion, and it is returned to her. Her loan is removed from the list. Bob is closed the same way and also receives 330.77 crvUSD.
 
-Dan covers the last 5,000. He gives up 384.62 crvUSD, keeps 714.29 crvUSD, and still owes 5,000 BOBC. His ratio rises to `714.29 * 13 / 5,000 = 185.7%`.
+Dan covers the last 5,000. He gives up 384.62 crvUSD, keeps 715.38 crvUSD, and still owes 5,000 BOBC. His ratio rises to about `715.38 * 13 / 5,000 = 186%`.
 
 If the requested amount would leave a position under the minimum debt (and the leftover is not just unpaid interest), the engine either takes the whole principal or stops where the remainder is still at least that floor. A redemption that finds nothing to take reverts. The call is capped by `max_iterations`, so one transaction cannot walk an unlimited list.
 

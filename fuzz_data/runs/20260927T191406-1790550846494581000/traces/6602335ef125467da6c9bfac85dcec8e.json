@@ -1,0 +1,167 @@
+{
+  "example_id": "6602335ef125467da6c9bfac85dcec8e",
+  "counts": {
+    "open_position:attempts": 2,
+    "open_position:successes": 2,
+    "transfer_bobc:attempts": 1,
+    "transfer_bobc:successes": 1,
+    "add_merchant:attempts": 1,
+    "add_merchant:successes": 1,
+    "clear_merchants:attempts": 8,
+    "clear_merchants:successes": 8,
+    "vault_yield:attempts": 1,
+    "vault_yield:successes": 1,
+    "time_travel:attempts": 1,
+    "time_travel:successes": 1,
+    "oracle_set_rate:attempts": 1,
+    "oracle_set_rate:successes": 1,
+    "vault_loss:attempts": 1,
+    "vault_loss:successes": 1,
+    "invalid_list_hints:attempts": 1
+  },
+  "transitions": {
+    "collateral_deposited_to_borrower_debt_minted": 2,
+    "bobc_transferred_between_actors": 1
+  },
+  "actions": [
+    {
+      "action": "open_position",
+      "inputs": {
+        "actor": "0x9Bb85835023672B6ec145aCF28c3f4c0a7Dd01A0",
+        "assets": 1430000000000000000000,
+        "debt": 500000000000000000000,
+        "annual_rate": 5000000000000000,
+        "initializer": true
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "open_position",
+      "inputs": {
+        "actor": "0xF1D22A5f067cf8C63494BF19a334AB11922FDD4b",
+        "assets": 2860000000000000000000,
+        "debt": 1000000000000000000000,
+        "annual_rate": 80000000000000000,
+        "initializer": true
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "transfer_bobc",
+      "inputs": {
+        "actor": "0xF1D22A5f067cf8C63494BF19a334AB11922FDD4b",
+        "receiver": "0x9Bc383f90e74e81FA0C725Db22e8797e0de527D2",
+        "amount": 400000000000000000000,
+        "initializer": true
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "add_merchant",
+      "inputs": {
+        "actor": "0x1BE3f793693eDB3049EDbB5F4c96309FD2D8DF43",
+        "merchant": "0xc86979947ed06645ACd8ca13Fd588b199bbb1c45",
+        "initializer": true
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "clear_merchants",
+      "inputs": {
+        "actor": "0x1BE3f793693eDB3049EDbB5F4c96309FD2D8DF43"
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "clear_merchants",
+      "inputs": {
+        "actor": "0x1BE3f793693eDB3049EDbB5F4c96309FD2D8DF43"
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "clear_merchants",
+      "inputs": {
+        "actor": "0x1BE3f793693eDB3049EDbB5F4c96309FD2D8DF43"
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "clear_merchants",
+      "inputs": {
+        "actor": "0x1BE3f793693eDB3049EDbB5F4c96309FD2D8DF43"
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "clear_merchants",
+      "inputs": {
+        "actor": "0x1BE3f793693eDB3049EDbB5F4c96309FD2D8DF43"
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "clear_merchants",
+      "inputs": {
+        "actor": "0x1BE3f793693eDB3049EDbB5F4c96309FD2D8DF43"
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "clear_merchants",
+      "inputs": {
+        "actor": "0x1BE3f793693eDB3049EDbB5F4c96309FD2D8DF43"
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "clear_merchants",
+      "inputs": {
+        "actor": "0x1BE3f793693eDB3049EDbB5F4c96309FD2D8DF43"
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "vault_yield",
+      "inputs": {
+        "assets": 3146000000000000000000
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "time_travel",
+      "inputs": {
+        "seconds": 1
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "oracle_set_rate",
+      "inputs": {
+        "rate": 1233704959393977600
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "vault_loss",
+      "inputs": {
+        "assets": 1000000000000000000
+      },
+      "outcome": "success"
+    },
+    {
+      "action": "invalid_list_hints",
+      "inputs": {
+        "borrower": "0x9CF6252037a1b1C83322519f0b352D24CD20fbAF",
+        "prev": "0xb825800c804AEBb50Fcc769eE87f8AeA63f53fA5",
+        "next": "0x0000000000000000000000000000000000000000"
+      },
+      "outcome": "failure"
+    }
+  ],
+  "failure": {
+    "action": "invalid_list_hints",
+    "type": "BoaError",
+    "message": "\n========================================================================\n[E] [34791] vault_engine.open_position:237(assets = 1500000000000000000000, debt = 1294096111252424055942, annual_rate = 5000000000000000, prev = \"0xb825800c804AEBb50Fcc769eE87f8AeA63f53fA5\", next = \"0x0000000000000000000000000000000000000000\") <Engine: collateral ratio>\n    [332] MockPegOracle.latest:20() => (1233704959393977600, 1790550849)\n    [1139] MockERC4626.convertToAssets:29(shares = 4290000000000000000000) => 7435000000000000000000\n        [356] MockERC20.balanceOf:18(arg0 = \"0xDa307248a684F54db5b206C10DBdceF6424bDF70\") => 7435000000000000000000\n    [23106] MockERC20.transferFrom:63(owner = \"0x9CF6252037a1b1C83322519f0b352D24CD20fbAF\", receiver = \"0x28BE84b49bB3E623ECA588EcA64783dae4c9751f\", amount = 1500000000000000000000) => True\n    [0] MockERC4626.deposit:36(assets = 1500000000000000000000, receiver = \"0x28BE84b49bB3E623ECA588EcA64783dae4c9751f\") => 865501008742434431741\n        [356] MockERC20.balanceOf:18(arg0 = \"0xDa307248a684F54db5b206C10DBdceF6424bDF70\") => 7435000000000000000000\n        [0] MockERC20.transferFrom:63(owner = \"0x28BE84b49bB3E623ECA588EcA64783dae4c9751f\", receiver = \"0xDa307248a684F54db5b206C10DBdceF6424bDF70\", amount = 1500000000000000000000) => True\n    [1139] MockERC4626.convertToAssets:29(shares = 865501008742434431741) => 1499999999999999999998\n        [356] MockERC20.balanceOf:18(arg0 = \"0xDa307248a684F54db5b206C10DBdceF6424bDF70\") => 8935000000000000000000\n========================================================================\n\nEngine: collateral ratio\n\n</Users/rabuawad/Code/dev-container/moon-mint/bobc/core/src/vault_engine.vy at 0x28BE84b49bB3E623ECA588EcA64783dae4c9751f, compiled with vyper-0.4.3+bff19ea2>\n<storage: _positions={'fyzz borrower 0': Position({'shares': 1430000000000000000000, 'debt': 500000000000000000000, 'fees': 0, 'annual_rate': 5000000000000000, 'updated_at': 1790550848, 'exists': True}), 'fyzz borrower 1': Position({'shares': 2860000000000000000000, 'debt': 1000000000000000000000, 'fees': 0, 'annual_rate': 80000000000000000, 'updated_at': 1790550848, 'exists': True})}, total_debt=1500000000000000000000, total_shares=5155501008742434431741, surplus=0, insurance_assets=0, bad_debt=0>\n <compiler: user revert with reason>\n\n  contract \"src/vault_engine.vy:237\", function \"open_position\", line 237:52 \n       236     held: uint256 = staticcall IERC4626(VAULT).convertToAssets(shares)\n  ---> 237     assert self._ratio(held, debt, rate) >= MIN_CR, \"Engine: collateral ratio\"\n  -------------------------------------------------------------^\n       238     self._positions[msg.sender] = Position(\n <locals: prev=0xb825800c804AEBb50Fcc769eE87f8AeA63f53fA5, next=0x0000000000000000000000000000000000000000, rate=1233704959393977600, shares=865501008742434431741, held=1499999999999999999998>"
+  }
+}

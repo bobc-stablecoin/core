@@ -1,0 +1,605 @@
+{
+  "config": {
+    "framework": "moccasin",
+    "meta_dir": "fuzz_data",
+    "schema_version": 1,
+    "suite_dir": "tests/fuzz",
+    "versions": {
+      "ape-vyper": null,
+      "eth-ape": null,
+      "hypothesis": "6.168.0",
+      "moccasin": "0.4.4",
+      "pytest": "9.1.1",
+      "python": "3.13.3",
+      "titanoboa": "0.2.8",
+      "vyper": "0.4.3"
+    }
+  },
+  "properties": {
+    "GL-01": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "global_supply_matches_debt_and_bad_debt",
+          "line": 157
+        }
+      ],
+      "spec": " \u2014 Supply accounting (`Accounting`, `src/vault_engine.vy:total_debt`, `bad_debt`; `src/bobc.vy:totalSupply`). After every successful or deliberately rejected action, `BOBC.totalSupply == engine.total_debt + engine.bad_debt`. Debt includes accrued fee debt; uncovered debt remains represented by `bad_debt`. Assertion: `Properties.global_supply_matches_debt_and_bad_debt`; hook: Hypothesis invariant. Implemented and executed in the standard run. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "GL-02": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "global_engine_bobc_is_fee_surplus",
+          "line": 165
+        }
+      ],
+      "spec": " \u2014 Engine fee inventory (`Accounting`, `src/vault_engine.vy:surplus`, `_accrue`, `_burn_fee`). The engine's BOBC balance equals `surplus`, which tracks interest minted to the engine and not yet burned. Assertion: `Properties.global_engine_bobc_is_fee_surplus`; hook: Hypothesis invariant. Implemented and executed in the standard run. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "GL-03": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "global_position_books_and_ordered_acyclic_list",
+          "line": 201
+        }
+      ],
+      "spec": " \u2014 Position and list books (`Structure`, `src/vault_engine.vy:total_debt`, `total_shares`, `position`; `src/sorted_positions.vy`). The acyclic ascending-rate list contains exactly modeled open borrowers; sum of listed debt and shares equals the public totals; each listed position has positive principal and each unlisted modeled borrower has a zero position. Assertion: `Properties.global_position_books_and_ordered_acyclic_list`; hook: Hypothesis invariant. Equal rates may appear in either adjacent order while remaining nondecreasing. Implemented and executed in the 100-example standard run. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "GL-04": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "global_idle_crvusd_is_accounted_as_insurance",
+          "line": 211
+        }
+      ],
+      "spec": " \u2014 Insurance asset custody (`Accounting`, `src/vault_engine.vy:insurance_assets`, `liquidate`). Engine-held idle crvUSD equals recorded insurance assets after each completed operation. Assertion: `Properties.global_idle_crvusd_is_accounted_as_insurance`; hook: Hypothesis invariant. This assumes no external donation directly to the engine; the state machine does not make such donations. Implemented and executed in the standard run. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "GL-05": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "global_cashback_list_matches_membership_map",
+          "line": 224
+        }
+      ],
+      "spec": " \u2014 Merchant set synchronization (`Access`, `src/cashback.vy:MERCHANTS`, `is_merchant`, `set_merchants`, `add_merchant`, `remove_merchant`, `clear_merchants`). The merchant array is unique and equals the Python set updated only after successful owner calls; every modeled merchant map value matches membership. Assertion: `Properties.global_cashback_list_matches_membership_map`; hook: Hypothesis invariant. Implemented and executed in the standard run. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "GL-06": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "global_cashback_ownership_model_matches_chain",
+          "line": 234
+        }
+      ],
+      "spec": " \u2014 Cashback owner handoff (`Access`, `src/cashback.vy` Snekmate `ownable_2step` exports). Chain `owner()` and `pending_owner()` equal the independent model after a transfer and acceptance. Assertion: `Properties.global_cashback_ownership_model_matches_chain`; hook: Hypothesis invariant. Implemented and executed in the standard run. Guarantee: SHOULD-HOLD.\n\n## Action properties\n\n",
+      "state": "x"
+    },
+    "GL-07": {
+      "drift": false,
+      "implementations": [],
+      "spec": " \u2014 Full token balance sum (`Accounting`, `src/bobc.vy` ERC-20). Enumerate every possible holder and prove that their balances sum to total supply. This is exploratory because a general external caller may hold BOBC at any address; the state machine tracks only its modeled actor and protocol addresses. Guarantee: EXPLORATORY.\n",
+      "state": " "
+    },
+    "GL-08": {
+      "drift": false,
+      "implementations": [],
+      "spec": " \u2014 ERC-4626 redeemability (`Integration`, `src/vault_engine.vy`, configured real vault). Position share totals are checked against the engine's own books, but real-vault loss, withdrawal limits, asynchronous exits, and fee-on-transfer behavior are outside the local mock. The Arbitrum fork test remains required for the configured vault and is conditional on `ARBITRUM_RPC`. Guarantee: EXPLORATORY.\n",
+      "state": " "
+    },
+    "SP-01": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_opened_position",
+          "line": 8
+        }
+      ],
+      "spec": " \u2014 Position opening (`Accounting`, `src/vault_engine.vy:open_position`). A successful open creates an existing position with the requested debt and positive shares, mints the requested debt to the borrower, and preserves the tracked supply/debt invariant. Share-to-asset conversion can floor below the deposit amount by one or more asset wei; no exact asset equality is assumed. Assertion: `Properties.check_opened_position`; hook: `Actions.open_position`. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-02": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_position_collateral_increased",
+          "line": 18
+        }
+      ],
+      "spec": " \u2014 Collateral addition (`Accounting`, `src/vault_engine.vy:add_collateral`, `_pull_deposit`). A successful positive addition increases position shares and reduces borrower crvUSD by the deposited amount. Assertion: `Properties.check_position_collateral_increased`; hook: `Actions.add_collateral`. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-03": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_withdraw_keeps_minimum_ratio",
+          "line": 24
+        }
+      ],
+      "spec": " \u2014 Collateral withdrawal threshold (`Solvency`, `src/vault_engine.vy:withdraw_collateral`). A successful withdrawal leaves the position at or above `MIN_CR` using the current oracle value and pending interest. Assertion: `Properties.check_withdraw_keeps_minimum_ratio`; hook: `Actions.withdraw_collateral`. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-04": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_borrow_minted",
+          "line": 28
+        }
+      ],
+      "spec": " \u2014 Additional borrowing (`Accounting`, `src/vault_engine.vy:borrow`, `_accrue`). Borrowing adds requested BOBC to the borrower and requested amount plus pre-call accrued interest to recorded debt. Assertion: `Properties.check_borrow_minted`; hook: `Actions.borrow_more`. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-05": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_repayment",
+          "line": 34
+        }
+      ],
+      "spec": " \u2014 Principal repayment (`Accounting`, `src/vault_engine.vy:repay`, `_accrue`). Repayment burns only the requested principal from the caller and accrues pending interest to position debt and fees before applying the repayment. Assertion: `Properties.check_repayment`; hook: `Actions.repay`. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-06": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_position_closed",
+          "line": 41
+        }
+      ],
+      "spec": " \u2014 Position closure (`Accounting`, `src/vault_engine.vy:close_position`, `_clear_position`, `_redeem_all`). Closing clears borrower debt, fees, and shares from the position and returns the represented collateral to the borrower. Assertion: `Properties.check_position_closed`; hook: `Actions.close_position`. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-07": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_rate_changed",
+          "line": 48
+        }
+      ],
+      "spec": " \u2014 Rate change (`Structure`, `src/vault_engine.vy:set_rate`, `src/sorted_positions.vy:_remove`, `_insert`). A successful rate update stores the requested rate; GL-03 checks the reinserted list order. Assertion: `Properties.check_rate_changed`; hook: `Actions.set_rate`. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-08": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_transfer",
+          "line": 52
+        }
+      ],
+      "spec": " \u2014 BOBC transfer conservation (`Accounting`, `src/bobc.vy` ERC-20 exports). A transfer debits and credits the requested amount and leaves total supply unchanged. Assertion: `Properties.check_transfer`; hook: `Actions.transfer_bobc`. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-09": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_supply_unchanged",
+          "line": 59
+        }
+      ],
+      "spec": " \u2014 Cashback inventory funding (`Accounting`, `src/cashback.vy:pay`, `src/bobc.vy` ERC-20 exports). Funding transfers preminted BOBC without changing total supply. Assertion: `Properties.check_supply_unchanged`; hook: `Actions.fund_cashback`. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-10": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_cashback_payment",
+          "line": 63
+        }
+      ],
+      "spec": " \u2014 Cashback payment and rebate (`Accounting`, `src/cashback.vy:pay`). A successful payment transfers `amount` to the merchant, debits `floor(amount * BPS / 10,000)` from finite inventory, credits that rebate to the payer, and preserves supply. Assertion: `Properties.check_cashback_payment`; hook: `Actions.pay_cashback`. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-11": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "actions.py",
+          "function": "unauthorized_mint",
+          "line": 687
+        }
+      ],
+      "spec": " \u2014 Unauthorized mint rejection (`Access`, `src/bobc.vy:mint`). A non-engine caller cannot mint; supply and recipient balance remain unchanged. Hook: `Actions.unauthorized_mint`; narrow `BoaError` plus reason and snapshot check. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-12": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "actions.py",
+          "function": "stale_oracle_blocks_add_collateral",
+          "line": 706
+        }
+      ],
+      "spec": " \u2014 Stale-oracle addition rejection (`Oracle`, `src/vault_engine.vy:add_collateral`). The current policy requires a fresh oracle for addition; when stale, the call reverts without changing position, borrower balance, or shares. Hook: `Actions.stale_oracle_blocks_add_collateral`; narrow `BoaError` plus reason and snapshot check. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-13": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "actions.py",
+          "function": "invalid_list_hints_revert",
+          "line": 780
+        }
+      ],
+      "spec": " \u2014 Invalid list hint rejection (`Structure`, `src/vault_engine.vy:open_position`, `src/sorted_positions.vy:_assert_hints`). A nonadjacent unlinked hint rejects an attempted open without changing debt or supply. Hook: `Actions.invalid_list_hints_revert`; narrow `BoaError` plus reason and snapshot check. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-14": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "actions.py",
+          "function": "invalid_cashback_limit_reverts",
+          "line": 807
+        }
+      ],
+      "spec": " \u2014 Cashback BPS bounds (`Access`, `src/cashback.vy:set_cashback_bps`). A value above 200 basis points rejects without changing the configured rate. Hook: `Actions.invalid_cashback_limit_reverts`; narrow `BoaError` plus reason and snapshot check. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-15": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "actions.py",
+          "function": "unauthorized_cashback_admin_reverts",
+          "line": 822
+        }
+      ],
+      "spec": " \u2014 Cashback owner gate (`Access`, `src/cashback.vy:set_cashback_bps`). An address other than the modeled owner cannot change the rate. Hook: `Actions.unauthorized_cashback_admin_reverts`; narrow `BoaError` plus reason and snapshot check. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-16": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "actions.py",
+          "function": "empty_cashback_pool_reverts_atomically",
+          "line": 863
+        }
+      ],
+      "spec": " \u2014 Empty rebate inventory atomicity (`Accounting`, `src/cashback.vy:pay`). A positive rebate cannot be paid from an empty pool; payer, merchant, pool, and allowance remain unchanged. Hook: `Actions.empty_cashback_pool_reverts_atomically`; narrow `BoaError` plus reason and snapshot check. Guarantee: SHOULD-HOLD.\n\n## Exploratory and pending properties\n\n",
+      "state": "x"
+    },
+    "SP-17": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_redemption",
+          "line": 75
+        }
+      ],
+      "spec": " \u2014 Redemption conservation and floor (`Accounting`, `src/vault_engine.vy:redeem`, `_redeem_from`, `_bounded_redemption`). Check that the reduction in aggregate position principal equals the external BOBC burned, every surviving debt respects the floor, assigned shares fall, and direct crvUSD output reaches the redeemer. A borrower who redeems their own final principal also receives residual shares, so their total asset increase may exceed the return value. Assertion: `Properties.check_redemption`; hook: `Actions.redeem`. Executed with 30 successful redemptions in the latest standard run. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-18": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "properties.py",
+          "function": "check_liquidation",
+          "line": 99
+        }
+      ],
+      "spec": " \u2014 Liquidation payout (`Solvency`, `src/vault_engine.vy:liquidate`, `_payout`). Independently calculate both payout branches from position value, accrued fee debt, oracle rate, and insurance. Check liquidator BOBC burn and asset payout, borrower remainder, insurance delta, fee surplus, position shares/debt removal, bad-debt delta, and supply. Assertion: `Properties.check_liquidation`; hook: `Actions.liquidate`. Executed with 51 successful liquidations in the latest standard run. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-19": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "actions.py",
+          "function": "inadequate_collateral_balance_reverts",
+          "line": 737
+        }
+      ],
+      "spec": " \u2014 Insufficient collateral balance reverts atomically (`Accounting`, `src/vault_engine.vy:add_collateral`). A borrower cannot add one wei more crvUSD than their wallet holds; the position, wallet, vault, debt, shares, fee surplus, and BOBC supply remain unchanged. Assertion: snapshot comparison in `Actions._assert_unchanged_after_revert`; hook: `Actions.inadequate_collateral_balance_reverts`. Executed with 388 expected reverts in the latest standard run. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    },
+    "SP-20": {
+      "drift": false,
+      "implementations": [
+        {
+          "file": "actions.py",
+          "function": "final_principal_repayment_reverts",
+          "line": 278
+        }
+      ],
+      "spec": " \u2014 Final-principal repayment cannot leave fee-only nodes (`Structure`, `src/vault_engine.vy:repay`, `position`, `next`). When accrued fees reach the debt floor, repaying all remaining principal reverts without changing debt, fee surplus, BOBC supply, or borrower balance; the borrower must use `close_position` to unlink and return collateral. Assertion: `Actions.final_principal_repayment_reverts` plus GL-03's positive-principal condition; hook: `Actions.final_principal_repayment_reverts`. Executed with 72 expected reverts in the latest standard run. Guarantee: SHOULD-HOLD.\n",
+      "state": "x"
+    }
+  },
+  "property_plan_hash": "f8ae93c21e4d90f4d73ecfc4f7c3b7cb92dea277872c0544d159511268907f41",
+  "schema_version": 1,
+  "selection": {
+    "actors": {
+      "all_addresses_are_generated_by": "boa.env.generate_address inside a fresh machine anchor",
+      "borrowers": 3,
+      "deployer": "initial deployer and Cashback owner",
+      "holders": 2,
+      "liquidators": 2,
+      "merchants": 3
+    },
+    "bounds": {
+      "actors": "Only addresses created for this machine are passed to address-valued rules; arbitrary address ABI fuzzing is excluded.",
+      "integer_values": "uint256 ABI; protocol actions bound values to actor balances, MIN_DEBT, collateral cap, BPS cap, and redemption's 1..32 limit.",
+      "merchant_array": "Vyper DynArray[address, 128]; current replacement rule uses the three modeled merchants, within the source bound.",
+      "oracle": "18-decimal integer values from 0.3 to 2.0 WAD for ordinary rate changes; deliberate stale/future/zero samples remain deterministic negative cases.",
+      "vault": "Asset and share values use integer ERC-4626 conversions; donation and loss actions are bounded to avoid unbounded mock state."
+    },
+    "deployment_dependencies": [
+      {
+        "name": "MockERC20",
+        "reason": "18-decimal crvUSD reserve mock",
+        "source": "tests/mocks/MockERC20.vy"
+      },
+      {
+        "name": "MockERC4626",
+        "reason": "local vault and controllable share value",
+        "source": "tests/mocks/MockERC4626.vy"
+      },
+      {
+        "name": "MockPegOracle",
+        "reason": "fresh, stale, zero, future, and changing oracle samples",
+        "source": "tests/mocks/MockPegOracle.vy"
+      },
+      {
+        "name": "BOBC",
+        "reason": "production ERC-20 and one-time engine binding",
+        "source": "src/bobc.vy"
+      },
+      {
+        "name": "Cashback",
+        "reason": "production merchant payment and finite rebate inventory",
+        "source": "src/cashback.vy"
+      },
+      {
+        "name": "VaultEngine",
+        "reason": "production position, redemption, and liquidation lifecycle",
+        "source": "src/vault_engine.vy"
+      }
+    ],
+    "excluded": [
+      {
+        "function": "BOBC.bind_vault_engine",
+        "reason": "one-time setup operation; performed once during every isolated deployment"
+      },
+      {
+        "function": "BOBC.permit",
+        "reason": "signature/nonce behavior is covered deterministically; no generated private-key/signature strategy in this state machine"
+      },
+      {
+        "function": "BOBC.burn",
+        "reason": "engine-only method; exercised through public Engine lifecycle actions"
+      },
+      {
+        "function": "VaultEngine.__init__",
+        "reason": "configuration validation is covered by deterministic construction tests"
+      },
+      {
+        "function": "view getters",
+        "reason": "called by actions and global properties as read support, not independent mutating actions"
+      },
+      {
+        "function": "external Arbitrum vault writes",
+        "reason": "requires ARBITRUM_RPC and a selected fork block; covered by tests/forked when configured"
+      }
+    ],
+    "framework": "moccasin",
+    "read_support": [
+      "VaultEngine.position",
+      "VaultEngine.pending_interest",
+      "VaultEngine.collateral_assets",
+      "VaultEngine.collateral_ratio",
+      "VaultEngine.head",
+      "VaultEngine.next",
+      "BOBC.balanceOf",
+      "BOBC.totalSupply",
+      "Cashback.get_merchants",
+      "Cashback.is_merchant",
+      "Cashback.owner",
+      "Cashback.pending_owner"
+    ],
+    "selected_primary": [
+      "VaultEngine.open_position",
+      "VaultEngine.add_collateral",
+      "VaultEngine.withdraw_collateral",
+      "VaultEngine.borrow",
+      "VaultEngine.repay",
+      "VaultEngine.close_position",
+      "VaultEngine.set_rate",
+      "VaultEngine.redeem",
+      "VaultEngine.liquidate",
+      "BOBC.transfer",
+      "BOBC.approve",
+      "Cashback.pay"
+    ],
+    "selected_secondary": [
+      "Cashback.set_cashback_bps",
+      "Cashback.add_merchant",
+      "Cashback.remove_merchant",
+      "Cashback.set_merchants",
+      "Cashback.clear_merchants",
+      "Cashback.transfer_ownership",
+      "Cashback.accept_ownership",
+      "MockPegOracle.setRate",
+      "MockPegOracle.setUpdatedAt",
+      "MockERC20.mint",
+      "MockERC20.transfer",
+      "BOBC.mint (unauthorized negative case)",
+      "VaultEngine.open_position with invalid hints (negative case)",
+      "VaultEngine.add_collateral with stale oracle (negative case)",
+      "VaultEngine.add_collateral with inadequate crvUSD balance (negative case)",
+      "VaultEngine.repay final principal at debt floor (negative case)",
+      "Cashback.set_cashback_bps above cap (negative case)",
+      "Cashback.pay with empty inventory (negative case)"
+    ],
+    "source_inventory": "contracts.json"
+  },
+  "signatures": {
+    "src/bobc.vy:bobc": [
+      "DOMAIN_SEPARATOR()",
+      "allowance(address,address)",
+      "approve(address,uint256)",
+      "balanceOf(address)",
+      "bind_vault_engine(address)",
+      "burn(address,uint256)",
+      "decimals()",
+      "eip712Domain()",
+      "mint(address,uint256)",
+      "name()",
+      "nonces(address)",
+      "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
+      "symbol()",
+      "totalSupply()",
+      "transfer(address,uint256)",
+      "transferFrom(address,address,uint256)",
+      "vault_engine()"
+    ],
+    "src/cashback.vy:cashback": [
+      "BOBC()",
+      "CASHBACK_BPS()",
+      "MERCHANTS(uint256)",
+      "accept_ownership()",
+      "add_merchant(address)",
+      "clear_merchants()",
+      "get_merchants()",
+      "is_merchant(address)",
+      "max_cashback_bps()",
+      "max_merchant_size()",
+      "owner()",
+      "pay(address,uint256)",
+      "pending_owner()",
+      "remove_merchant(address)",
+      "set_cashback_bps(uint256)",
+      "set_merchants(address[])",
+      "transfer_ownership(address)"
+    ],
+    "src/sorted_positions.vy:sorted_positions": [],
+    "src/vault_engine.vy:vault_engine": [
+      "ASSET()",
+      "BOBC()",
+      "INSURANCE_BPS()",
+      "LIQUIDATOR_BPS()",
+      "LIQ_CR()",
+      "MAX_ANNUAL_RATE()",
+      "MAX_COLLATERAL_ASSETS()",
+      "MAX_STALENESS()",
+      "MIN_ANNUAL_RATE()",
+      "MIN_CR()",
+      "MIN_DEBT()",
+      "PEG_ORACLE()",
+      "PENALTY_BPS()",
+      "VAULT()",
+      "add_collateral(uint256)",
+      "bad_debt()",
+      "borrow(uint256)",
+      "close_position()",
+      "collateral_assets(address)",
+      "collateral_ratio(address)",
+      "head()",
+      "insurance_assets()",
+      "liquidate(address)",
+      "next(address)",
+      "open_position(uint256,uint256,uint256,address,address)",
+      "pending_interest(address)",
+      "position(address)",
+      "redeem(uint256,uint256)",
+      "repay(uint256)",
+      "set_rate(uint256,address,address)",
+      "surplus()",
+      "total_debt()",
+      "total_shares()",
+      "withdraw_collateral(uint256)"
+    ]
+  },
+  "sources": {
+    "lib/pypi/snekmate/auth/access_control.vy": "0599bba35a7dccced61b9ff455182d2e4591252c4c4dd041ea6493c70cea5112",
+    "lib/pypi/snekmate/auth/ownable.vy": "2bebfade7e8fab0293285cac09686d2747423553081e45dd9f35b25801253dc1",
+    "lib/pypi/snekmate/auth/ownable_2step.vy": "ee87e38956909d432bb811e1b20c8a414f669dc27132c3db98f036f4a1a5dc8a",
+    "lib/pypi/snekmate/extensions/erc2981.vy": "0ed841111c7df60e3c8adb68c60cfdf303f031415940adc7b441f230b0782f6c",
+    "lib/pypi/snekmate/extensions/erc4626.vy": "d216ce034a00d1c0c45465529eca8e8a0bc90b6b01d0d3b0ab83d0a69838b0b0",
+    "lib/pypi/snekmate/governance/timelock_controller.vy": "744fd1f788c72f95bc5ac9f092cbf1c33fe7c2c93c93343f8025ffec6a6137f0",
+    "lib/pypi/snekmate/tokens/erc1155.vy": "ff403274f3f309a64109e26b394bb2c5532045ca12a39e5ba05e2292f0e1a8b2",
+    "lib/pypi/snekmate/tokens/erc20.vy": "0eeedc89ad663a421a3ed91ccd38a7741c497affc243ef36301d8f5dfc9e7ee9",
+    "lib/pypi/snekmate/tokens/erc721.vy": "6630fe8c97ca896e289d5491344a61071686a5699462542e01ec51fd41cb5fae",
+    "lib/pypi/snekmate/utils/base64.vy": "b0547b41a1e14f85347e246874af11c7a1befa884ead4f1020c2197be1f44b9f",
+    "lib/pypi/snekmate/utils/batch_distributor.vy": "fb5e46273b12f8c780f8720d1f0237bc0babaa8481b91a66c42a70a3ac80b970",
+    "lib/pypi/snekmate/utils/block_hash.vy": "a9f48ed677fd499d115b67a63a33e5a9795235bbfbb52d42f0498e4edafbfcce",
+    "lib/pypi/snekmate/utils/create.vy": "4015be771b13f6cf527f53f20e1b51769d1099eb7e577eb7762b2bcb0f45d379",
+    "lib/pypi/snekmate/utils/create2.vy": "30cc0e05ee0ec93195d17d04bb918333465ee3d52f5495a83f084bf919b5cc8e",
+    "lib/pypi/snekmate/utils/create3.vy": "dcbd4e645066eaae7b6d4c40338e9dbda01a9c4908e225693c72b5c1c9e24d1f",
+    "lib/pypi/snekmate/utils/ecdsa.vy": "833c605b78ecd9b9f28703d47458cc13ec08acc80aae6be51527002f8979695f",
+    "lib/pypi/snekmate/utils/eip712_domain_separator.vy": "d1394de1341b3427a40a4a4054054972944f08eb0f91f669e00d6bd63c4c5f4f",
+    "lib/pypi/snekmate/utils/math.vy": "46ce337330755a5524fceddc58ee0aded127288a92cb3fd064fd09dedf9c6c97",
+    "lib/pypi/snekmate/utils/merkle_proof_verification.vy": "2904b93e063ff8339ebcf8e23ed1b88536c6ccb29b2cdeb4ecdda2382aea4244",
+    "lib/pypi/snekmate/utils/message_hash_utils.vy": "0cbe5f67f6fe715ecf12c9289c2c68633e968f0c275712f55f8041bd9969c8b1",
+    "lib/pypi/snekmate/utils/multicall.vy": "6744ac956fc64fa496fdae687905adf8b5b2f8632971be50dd848bbc80bc4bb3",
+    "lib/pypi/snekmate/utils/p256.vy": "900800c6469660921e35dd458028a35d1672c16d9ae1d009c6128bacd930bcfa",
+    "lib/pypi/snekmate/utils/pausable.vy": "d574852faf8f57db83acce1f93a6ed458d106cef288d419e0d4de92d51c5d8de",
+    "lib/pypi/snekmate/utils/signature_checker.vy": "d100fb5f6e6f0c586ad482c2bab787986d78b1ff1a806ca920683a279f0a793b",
+    "src/bobc.vy": "a8a37f73b246d2d09251b311215e5cf3ea7bbd292c9a645749b3f2c1daf261c8",
+    "src/cashback.vy": "4e4614e6d5051535ec5412fd61a4d8358d70739ef49eb51fe26d4ffbf7c2a781",
+    "src/sorted_positions.vy": "8f2e99c975cb5ead71c7d1e29eb7e21dfebbb04da162375cb97e72450d1fda11",
+    "src/vault_engine.vy": "b756f46c970ce2b6bd484e8482f47806b7a26dd5874013f137e8bf674483aee8",
+    "tests/mocks/MockERC20.vy": "ff5080a74e0fb557faed82bf13edb28f88496bfbde6299736935f8bdc67a447b",
+    "tests/mocks/MockERC4626.vy": "16b507bcb0d502eccfba9ee9f0c8b54987527644d8e961d783c3517df1544e36",
+    "tests/mocks/MockPegOracle.vy": "fac6e5095cd4327a75efb3262ed33c3d53611efcc83fe0c0fdcecba8bc05bd7a"
+  },
+  "suite_hashes": {
+    "__init__.py": "8322c6059582a4cf54e37d5716425002180a0e364940a95fd4d5da3d9754df95",
+    "actions.py": "94b7deec2b73a087b3a5ebe3a988057af974de4d82c219fa3b5a1b97d1b4b3d3",
+    "conftest.py": "0873e9894260238b7d7637d4373ba03ab4ba4b455f23ee0b9dc5f0a252ddeb75",
+    "machine.py": "d388b8f39c8fac1dc628d2a2ee84e29bcd589d02447866522214b7a5f48eba2e",
+    "model.py": "52da72d3fa74d08d43f6435f0cd4c3274efd23e19f5cf2d8ca28b98830a16490",
+    "properties.py": "dd49fee9455b30a27e57c0a79a092275b184d383cbc1503ca5cc30de889e33c1",
+    "runtime.py": "d4bc3f92eb0266590a3cba17616ab80acad6449df75154476c02355dc0820663",
+    "setup.py": "ea788d3af61e38d4c2badcd6c9d26001d91856e1a424b9cdf0733ed285c30994",
+    "strategies.py": "ca5c5d394770a7c9aae998c36e9d9fed6764cf07a2312c3ce80a2182ad9ee141",
+    "test_isolation.py": "791e4aa8c13f49580a16de1c96cf8df3929de6bb2f8d5e2973691768a9caaf40",
+    "test_stateful.py": "42498e8a8fa436d2572ee56c47ee49ba05e71e6f91b4b41a1169e96aee0cd6d9",
+    "test_strategy_regressions.py": "5806f80c9938a5c32c25712110668a8b110e93fbafbaae4633264381c6fd7c92"
+  },
+  "versions": {
+    "ape-vyper": null,
+    "eth-ape": null,
+    "hypothesis": "6.168.0",
+    "moccasin": "0.4.4",
+    "pytest": "9.1.1",
+    "python": "3.13.3",
+    "titanoboa": "0.2.8",
+    "vyper": "0.4.3"
+  }
+}

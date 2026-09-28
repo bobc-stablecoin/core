@@ -1,0 +1,36 @@
+{
+  "example_id": "907df0838b144c4fbf4b6774d41dde30",
+  "counts": {
+    "open_position:attempts": 2,
+    "open_position:successes": 2,
+    "transfer_bobc:attempts": 1,
+    "transfer_bobc:successes": 1,
+    "add_merchant:attempts": 1,
+    "add_merchant:successes": 1,
+    "cashback_limit_revert:attempts": 3,
+    "cashback_limit_revert:expected_reverts": 3,
+    "oracle_refresh:attempts": 1,
+    "oracle_refresh:successes": 1,
+    "approve_cashback:attempts": 2,
+    "approve_cashback:successes": 2,
+    "unauthorized_mint:attempts": 2,
+    "unauthorized_mint:expected_reverts": 2,
+    "repay:attempts": 1,
+    "repay:successes": 1,
+    "pay_cashback:attempts": 3,
+    "pay_cashback:successes": 3,
+    "set_cashback_bps:attempts": 1,
+    "set_cashback_bps:successes": 1,
+    "withdraw_collateral:attempts": 1,
+    "withdraw_collateral:successes": 1,
+    "set_merchants:attempts": 1,
+    "set_merchants:successes": 1
+  },
+  "transitions": {
+    "collateral_deposited_to_borrower_debt_minted": 2,
+    "bobc_transferred_between_actors": 1,
+    "borrower_burns_principal": 1,
+    "cashback_payment_completed_after_inventory_setup": 3,
+    "position_collateral_withdrawn_above_minimum_ratio": 1
+  }
+}

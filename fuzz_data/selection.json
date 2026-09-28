@@ -1,0 +1,83 @@
+{
+  "framework": "moccasin",
+  "source_inventory": "contracts.json",
+  "deployment_dependencies": [
+    {"name": "MockERC20", "source": "tests/mocks/MockERC20.vy", "reason": "18-decimal crvUSD reserve mock"},
+    {"name": "MockERC4626", "source": "tests/mocks/MockERC4626.vy", "reason": "local vault and controllable share value"},
+    {"name": "MockPegOracle", "source": "tests/mocks/MockPegOracle.vy", "reason": "fresh, stale, zero, future, and changing oracle samples"},
+    {"name": "BOBC", "source": "src/bobc.vy", "reason": "production ERC-20 and one-time engine binding"},
+    {"name": "Cashback", "source": "src/cashback.vy", "reason": "production merchant payment and finite rebate inventory"},
+    {"name": "VaultEngine", "source": "src/vault_engine.vy", "reason": "production position, redemption, and liquidation lifecycle"}
+  ],
+  "actors": {
+    "deployer": "initial deployer and Cashback owner",
+    "borrowers": 3,
+    "holders": 2,
+    "liquidators": 2,
+    "merchants": 3,
+    "all_addresses_are_generated_by": "boa.env.generate_address inside a fresh machine anchor"
+  },
+  "selected_primary": [
+    "VaultEngine.open_position",
+    "VaultEngine.add_collateral",
+    "VaultEngine.withdraw_collateral",
+    "VaultEngine.borrow",
+    "VaultEngine.repay",
+    "VaultEngine.close_position",
+    "VaultEngine.set_rate",
+    "VaultEngine.redeem",
+    "VaultEngine.liquidate",
+    "BOBC.transfer",
+    "BOBC.approve",
+    "Cashback.pay"
+  ],
+  "selected_secondary": [
+    "Cashback.set_cashback_bps",
+    "Cashback.add_merchant",
+    "Cashback.remove_merchant",
+    "Cashback.set_merchants",
+    "Cashback.clear_merchants",
+    "Cashback.transfer_ownership",
+    "Cashback.accept_ownership",
+    "MockPegOracle.setRate",
+    "MockPegOracle.setUpdatedAt",
+    "MockERC20.mint",
+    "MockERC20.transfer",
+    "BOBC.mint (unauthorized negative case)",
+    "VaultEngine.open_position with invalid hints (negative case)",
+    "VaultEngine.add_collateral with stale oracle (negative case)",
+    "VaultEngine.add_collateral with inadequate crvUSD balance (negative case)",
+    "VaultEngine.repay final principal at debt floor (negative case)",
+    "Cashback.set_cashback_bps above cap (negative case)",
+    "Cashback.pay with empty inventory (negative case)"
+  ],
+  "read_support": [
+    "VaultEngine.position",
+    "VaultEngine.pending_interest",
+    "VaultEngine.collateral_assets",
+    "VaultEngine.collateral_ratio",
+    "VaultEngine.head",
+    "VaultEngine.next",
+    "BOBC.balanceOf",
+    "BOBC.totalSupply",
+    "Cashback.get_merchants",
+    "Cashback.is_merchant",
+    "Cashback.owner",
+    "Cashback.pending_owner"
+  ],
+  "excluded": [
+    {"function": "BOBC.bind_vault_engine", "reason": "one-time setup operation; performed once during every isolated deployment"},
+    {"function": "BOBC.permit", "reason": "signature/nonce behavior is covered deterministically; no generated private-key/signature strategy in this state machine"},
+    {"function": "BOBC.burn", "reason": "engine-only method; exercised through public Engine lifecycle actions"},
+    {"function": "VaultEngine.__init__", "reason": "configuration validation is covered by deterministic construction tests"},
+    {"function": "view getters", "reason": "called by actions and global properties as read support, not independent mutating actions"},
+    {"function": "external Arbitrum vault writes", "reason": "requires ARBITRUM_RPC and a selected fork block; covered by tests/forked when configured"}
+  ],
+  "bounds": {
+    "actors": "Only addresses created for this machine are passed to address-valued rules; arbitrary address ABI fuzzing is excluded.",
+    "integer_values": "uint256 ABI; protocol actions bound values to actor balances, MIN_DEBT, collateral cap, BPS cap, and redemption's 1..32 limit.",
+    "merchant_array": "Vyper DynArray[address, 128]; current replacement rule uses the three modeled merchants, within the source bound.",
+    "oracle": "18-decimal integer values from 0.3 to 2.0 WAD for ordinary rate changes; deliberate stale/future/zero samples remain deterministic negative cases.",
+    "vault": "Asset and share values use integer ERC-4626 conversions; donation and loss actions are bounded to avoid unbounded mock state."
+  }
+}

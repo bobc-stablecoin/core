@@ -1,0 +1,37 @@
+{
+  "example_id": "aa0839b0d5f24e7eb498ed8042087de2",
+  "counts": {
+    "open_position:attempts": 2,
+    "open_position:successes": 2,
+    "transfer_bobc:attempts": 1,
+    "transfer_bobc:successes": 1,
+    "add_merchant:attempts": 2,
+    "add_merchant:successes": 2,
+    "vault_yield:attempts": 6,
+    "vault_yield:successes": 6,
+    "fund_cashback:attempts": 3,
+    "fund_cashback:successes": 3,
+    "set_merchants:attempts": 6,
+    "set_merchants:successes": 6,
+    "inadequate_collateral_balance:attempts": 1,
+    "inadequate_collateral_balance:expected_reverts": 1,
+    "expected_stale_oracle_revert:attempts": 2,
+    "expected_stale_oracle_revert:expected_reverts": 2,
+    "pay_cashback:attempts": 4,
+    "pay_cashback:successes": 4,
+    "empty_cashback_pool_revert:attempts": 3,
+    "empty_cashback_pool_revert:expected_reverts": 3,
+    "transfer_cashback_ownership:attempts": 3,
+    "transfer_cashback_ownership:successes": 3,
+    "oracle_set_rate:attempts": 1,
+    "oracle_set_rate:successes": 1,
+    "remove_merchant:attempts": 3,
+    "remove_merchant:successes": 3
+  },
+  "transitions": {
+    "collateral_deposited_to_borrower_debt_minted": 2,
+    "bobc_transferred_between_actors": 1,
+    "preminted_cashback_inventory_transferred": 3,
+    "cashback_payment_completed_after_inventory_setup": 4
+  }
+}

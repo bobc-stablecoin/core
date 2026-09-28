@@ -1,0 +1,15 @@
+{
+  "example_id": "97c1dc0e818640738b7b1c2d7e0d1c1b",
+  "counts": {
+    "open_position:attempts": 2,
+    "open_position:successes": 2,
+    "transfer_bobc:attempts": 25,
+    "transfer_bobc:successes": 25,
+    "add_merchant:attempts": 1,
+    "add_merchant:successes": 1
+  },
+  "transitions": {
+    "collateral_deposited_to_borrower_debt_minted": 2,
+    "bobc_transferred_between_actors": 25
+  }
+}

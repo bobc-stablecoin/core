@@ -1,26 +1,26 @@
 # Liquidation
 
-Redemption shrinks a healthy loan and leaves the cushion with the borrower. Liquidation is the other path. It starts only when the collateral ratio is under 120%, and the caller takes a penalty on top of the debt.
+Redemption shrinks a healthy loan and leaves the cushion with the borrower. Liquidation starts only when the collateral ratio is under 120%. When collateral covers the debt and penalty, the caller receives the debt value plus the liquidator share of the penalty. A shortfall uses insurance first, then records uncovered debt.
 
 The ratio is checked after interest is accrued, using a fresh oracle. A position at exactly 120% is not liquidated. The deploy default also rejects a penalty that does not fit inside that 120% line, so a liquidation that happens right at the boundary still has crvUSD left for the penalty.
 
 ## A move from 13 to 10
 
-Alice still has 1,098.90 crvUSD and owes 10,000 BOBC. At 10 BOB per USD the collateral is worth 10,989 BOB. The ratio is 109.9%. Her debt now claims `10,000 / 10 = 1,000` crvUSD, and she has 1,098.90, so the debt is covered.
+Alice still has 1,100 crvUSD and owes 10,000 BOBC. At 10 BOB per USD the collateral is worth 11,000 BOB. The ratio is 110%. Her debt now claims `10,000 / 10 = 1,000` crvUSD, and she has 1,100, so the debt is covered.
 
 The default penalty is 5%: 4% to the liquidator, 1% kept by the engine as idle crvUSD (`insurance_assets`). The caller pays the full 10,000 BOBC (there is no unpaid interest in this example). Of her crvUSD:
 
 - **1,040** goes to the caller (the 1,000 of debt plus 4%).
 - **10** stays in the engine as insurance.
-- **48.90** returns to Alice.
+- **50** returns to Alice.
 
-A redemption at this same oracle would have returned her `1,098.90 - 1,000 = 98.90` crvUSD. The missing 50 crvUSD is the penalty. Her loan is removed from the list.
+A redemption at this same oracle would have returned her `1,100 - 1,000 = 100` crvUSD. The missing 50 crvUSD is the penalty. Her loan is removed from the list.
 
 ## A gap from 13 to 8
 
-At 8 BOB per USD the same 1,098.90 crvUSD is worth `1,098.90 * 8 = 8,791.20` BOB. She owes 10,000. The position cannot pay the debt.
+At 8 BOB per USD the same 1,100 crvUSD is worth `1,100 * 8 = 8,800` BOB. She owes 10,000. The position cannot pay the debt.
 
-With no insurance on hand, the caller pays **8,791.20 BOBC** and takes all 1,098.90 crvUSD. Alice receives nothing. The other **1,208.80 BOBC** stays in circulation with no collateral behind it. That amount is `bad_debt`.
+With no insurance on hand, the caller pays **8,800 BOBC** and takes all 1,100 crvUSD. Alice receives nothing. The other **1,200 BOBC** stays in circulation with no collateral behind it. That amount is `bad_debt`.
 
 If the engine already holds insurance crvUSD from earlier penalties, that balance is added to the pot first, up to the shortfall. The caller then pays BOBC equal to the oracle value of the crvUSD they actually receive. Only the still-uncovered debt is recorded as `bad_debt`.
 

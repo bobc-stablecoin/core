@@ -1,0 +1,26 @@
+{
+  "example_id": "bca4bf58c6a6485480c6e389abd7ee6f",
+  "counts": {
+    "open_position:attempts": 2,
+    "open_position:successes": 2,
+    "transfer_bobc:attempts": 1,
+    "transfer_bobc:successes": 1,
+    "add_merchant:attempts": 1,
+    "add_merchant:successes": 1,
+    "remove_merchant:attempts": 1,
+    "remove_merchant:successes": 1,
+    "invalid_list_hints:attempts": 1,
+    "invalid_list_hints:expected_reverts": 1,
+    "final_principal_repay_revert:attempts": 2,
+    "final_principal_repay_revert:expected_reverts": 2,
+    "pay_cashback:attempts": 2,
+    "pay_cashback:successes": 2,
+    "time_travel:attempts": 1,
+    "time_travel:successes": 1
+  },
+  "transitions": {
+    "collateral_deposited_to_borrower_debt_minted": 2,
+    "bobc_transferred_between_actors": 1,
+    "cashback_payment_completed_after_inventory_setup": 2
+  }
+}

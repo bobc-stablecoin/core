@@ -1,0 +1,32 @@
+{
+  "example_id": "01ad2213e271471db6cde070e6cf5e90",
+  "counts": {
+    "open_position:attempts": 2,
+    "open_position:successes": 2,
+    "transfer_bobc:attempts": 1,
+    "transfer_bobc:successes": 1,
+    "add_merchant:attempts": 1,
+    "add_merchant:successes": 1,
+    "final_principal_repay_revert:attempts": 1,
+    "final_principal_repay_revert:expected_reverts": 1,
+    "approve_cashback:attempts": 6,
+    "approve_cashback:successes": 6,
+    "close_position:attempts": 1,
+    "close_position:successes": 1,
+    "set_merchants:attempts": 10,
+    "set_merchants:successes": 10,
+    "oracle_set_rate:attempts": 3,
+    "oracle_set_rate:successes": 3,
+    "borrow:attempts": 1,
+    "borrow:successes": 1,
+    "withdraw_collateral:attempts": 1,
+    "withdraw_collateral:successes": 1
+  },
+  "transitions": {
+    "collateral_deposited_to_borrower_debt_minted": 2,
+    "bobc_transferred_between_actors": 1,
+    "position_closed_and_collateral_returned": 1,
+    "position_debt_increased_with_new_bobc": 1,
+    "position_collateral_withdrawn_above_minimum_ratio": 1
+  }
+}

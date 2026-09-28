@@ -1,0 +1,20 @@
+#vyper-auditor-memory v1	key	status	scans	sha	title	kind
+src-vault-engine-vy|repay|redemption-step-poisoning	NEW	1	8eef8b1	Repaying final principal can enable free liquidation and block redemption	FINDING
+src-vault-engine-vy|add-collateral|zero-share-deposit	NEW	1	8eef8b1	A borrower may lose a crvUSD deposit	LEAD
+src-vault-engine-vy|-pull-deposit|zero-share-deposit	NEW	1	8eef8b1	A vault deposit may transfer crvUSD without recording shares	LEAD
+src-vault-engine-vy|redeem|redemption-head-starvation	NEW	1	8eef8b1	A BOBC holder may not reach later positions	LEAD
+src-vault-engine-vy|-redeem-all|vault-liquidity-lock	NEW	1	8eef8b1	A borrower may be unable to close during vault illiquidity	LEAD
+src-vault-engine-vy|-payout|no-underwater-liquidation-reward	NEW	1	8eef8b1	A liquidator may receive no premium for underwater collateral	LEAD
+src-vault-engine-vy|close-position|oracle-outage-blocks-risk-reduction	NEW	1	8eef8b1	A borrower cannot close during an oracle outage	LEAD
+src-vault-engine-vy|repay|oracle-outage-blocks-risk-reduction	NEW	1	8eef8b1	A borrower cannot repay during an oracle outage	LEAD
+src-vault-engine-vy|add-collateral|oracle-outage-blocks-risk-reduction	NEW	1	8eef8b1	A borrower cannot add collateral during an oracle outage	LEAD
+src-vault-engine-vy|borrow|fresh-oracle-rate-manipulation	NEW	1	8eef8b1	A borrower may mint excess BOBC	LEAD
+src-vault-engine-vy|-init-|unbounded-vault-allowance	NEW	1	8eef8b1	A compromised vault may take idle engine crvUSD	LEAD
+src-vault-engine-vy|liquidate|liquidation-quote-exceeds-vault-proceeds	NEW	1	8eef8b1	A vault fee may make liquidation underfunded or overstate insurance	LEAD
+src-vault-engine-vy|-ratio|crvusd-parity-assumption	NEW	1	8eef8b1	A crvUSD depeg may leave BOBC undercollateralized	LEAD
+src-vault-engine-vy|-pull-deposit|fee-on-transfer-insurance-subsidy	NEW	1	8eef8b1	A fee-on-transfer asset may consume idle insurance	LEAD
+src-vault-engine-vy|redeem|oracle-outage-blocks-redemption	NEW	1	8eef8b1	A BOBC holder cannot redeem during an oracle outage	LEAD
+src-vault-engine-vy|liquidate|oracle-outage-blocks-liquidation	NEW	1	8eef8b1	A liquidator cannot clear an unsafe position during an oracle outage	LEAD
+src-vault-engine-vy|liquidate|fee-on-transfer-liquidation-payout	NEW	1	8eef8b1	A fee-on-transfer asset may short a liquidator's payout	LEAD
+src-vault-engine-vy|set-rate|oracle-outage-blocks-risk-reduction	NEW	1	8eef8b1	A borrower cannot lower future interest during an oracle outage	LEAD
+src-vault-engine-vy|-redeem-from|redemption-withdraw-fee-health	NEW	1	8eef8b1	A vault withdrawal fee may push a redeemed position below `LIQ_CR`	LEAD

@@ -1,0 +1,24 @@
+{
+  "example_id": "995eefbaeb4b4f6a8bdbd61120bffecd",
+  "counts": {
+    "open_position:attempts": 2,
+    "open_position:successes": 2,
+    "transfer_bobc:attempts": 1,
+    "transfer_bobc:successes": 1,
+    "add_merchant:attempts": 3,
+    "add_merchant:successes": 3,
+    "set_cashback_bps:attempts": 15,
+    "set_cashback_bps:successes": 15,
+    "vault_yield:attempts": 9,
+    "vault_yield:successes": 9,
+    "final_principal_repay_revert:attempts": 6,
+    "final_principal_repay_revert:expected_reverts": 6,
+    "set_rate:attempts": 3,
+    "set_rate:successes": 3
+  },
+  "transitions": {
+    "collateral_deposited_to_borrower_debt_minted": 2,
+    "bobc_transferred_between_actors": 1,
+    "position_rate_reordered": 3
+  }
+}

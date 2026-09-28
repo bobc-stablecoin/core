@@ -1,0 +1,17 @@
+Running test command...
+============================= test session starts ==============================
+platform darwin -- Python 3.13.3, pytest-9.1.1, pluggy-1.6.0 -- /Users/rabuawad/Code/dev-container/moon-mint/bobc/core/.venv/bin/python3
+cachedir: fuzz_data/pytest-cache
+hypothesis profile 'default'
+rootdir: /Users/rabuawad/Code/dev-container/moon-mint/bobc/core
+configfile: pyproject.toml
+plugins: titanoboa-0.2.8, cov-7.1.0, xdist-3.8.0, hypothesis-6.168.0
+collecting ... collected 5 items
+
+tests/fuzz/test_isolation.py::test_consecutive_machine_instances_reset_chain_and_model PASSED [ 20%]
+tests/fuzz/test_isolation.py::test_machine_closes_anchor_when_deployment_raises PASSED [ 40%]
+tests/fuzz/test_stateful.py::test_stateful PASSED                        [ 60%]
+tests/fuzz/test_strategy_regressions.py::test_open_strategy_accounts_for_share_price_rounding PASSED [ 80%]
+tests/fuzz/test_strategy_regressions.py::test_bad_hint_replay_accounts_for_vault_share_rounding PASSED [100%]
+
+======================== 5 passed in 155.31s (0:02:35) =========================

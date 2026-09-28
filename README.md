@@ -13,6 +13,8 @@ LlamaLend appreciation belongs to the borrower and can be withdrawn while the po
 the minimum ratio. Borrow interest grows the debt and is minted to the engine. That balance is burned
 when the position is closed or liquidated. Repayment and redemption burn principal BOBC from the caller.
 Supply equals outstanding debt plus bad debt recorded when a liquidation cannot cover the full debt.
+`repay` keeps principal in every linked position; to repay the final principal and return collateral,
+the borrower uses `close_position`, which also burns the accrued engine-held fees.
 
 A walk through the numbers, then a pointer into the Vyper, is in [docs/README.md](docs/README.md).
 
@@ -55,15 +57,17 @@ uv run mox test -v
 ```
 
 With a global Moccasin install, use `mox compile` and `mox test -v` directly. Unit tests use typed Vyper mocks in
-`tests/mocks`. The Arbitrum fork test is skipped unless the RPC is present:
+`tests/mocks`. The Arbitrum fork test is skipped unless the RPC is present. Set `ARBITRUM_FORK_BLOCK` to pin a
+block; when unset, the test forks `safe` and prints the resolved block so the run can be recorded:
 
 ```bash
 export ARBITRUM_RPC="https://..."
-uv run mox test tests/forked/test_arbitrum_vault.py -v
+export ARBITRUM_FORK_BLOCK="<block-number>" # optional; omit to use safe
+uv run mox test tests/forked/test_arbitrum_vault.py -vs
 ```
 
 T12 uses the real vault and crvUSD contracts, funds a generated account only in fork state, and opens then closes
-a small position. No live transaction is broadcast.
+a small position. Record the printed fork block with the RPC provider and command. No live transaction is broadcast.
 
 ## Deployment configuration
 
@@ -93,8 +97,8 @@ accepts an approved receiver distinct from the payer. The owner can set the rate
 `accept_ownership`.
 
 The minimum collateral ratio must sit above the liquidation ratio, and the liquidation ratio must leave room for
-the penalty. `MIN_CR` of 143% is the 9.1-versus-13 borrow cushion: at 13 BOB per USD, 1,430 crvUSD supports
-1,000 BOBC.
+the penalty. `MIN_CR` of 143% is the 9.1-versus-13 borrow cushion: at 13 BOB per USD, 110 crvUSD supports
+1,000 BOBC at exactly 143% collateralization.
 
 `deployments/arbitrum.json` is a publication schema. Replace `null` contract addresses and transaction hashes only
 after an actual deployment.

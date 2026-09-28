@@ -1,0 +1,21 @@
+{
+  "example_id": "0116ee0f244b41a1a0e8c82ec0f272ec",
+  "counts": {
+    "open_position:attempts": 2,
+    "open_position:successes": 2,
+    "transfer_bobc:attempts": 1,
+    "transfer_bobc:successes": 1,
+    "add_merchant:attempts": 1,
+    "add_merchant:successes": 1,
+    "vault_loss:attempts": 1,
+    "vault_loss:successes": 1,
+    "unauthorized_cashback_admin:attempts": 1,
+    "unauthorized_cashback_admin:expected_reverts": 1,
+    "invalid_list_hints:attempts": 1,
+    "invalid_list_hints:expected_reverts": 1
+  },
+  "transitions": {
+    "collateral_deposited_to_borrower_debt_minted": 2,
+    "bobc_transferred_between_actors": 1
+  }
+}

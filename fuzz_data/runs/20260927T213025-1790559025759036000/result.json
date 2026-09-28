@@ -1,0 +1,42 @@
+{
+  "command": [
+    "uv",
+    "run",
+    "mox",
+    "test",
+    "/Users/rabuawad/Code/dev-container/moon-mint/bobc/core/tests/fuzz",
+    "-v",
+    "--hypothesis-seed",
+    "20260927"
+  ],
+  "effective_settings": {
+    "deadline": null,
+    "max_examples": 100,
+    "profile": "standard",
+    "stateful_step_count": 50,
+    "versions": {
+      "hypothesis": "6.168.0",
+      "moccasin": "0.4.4",
+      "pytest": "9.1.1",
+      "python": "3.13.3",
+      "titanoboa": "0.2.8",
+      "vyper": "0.4.3"
+    }
+  },
+  "exit_code": 0,
+  "launcher_versions": {
+    "ape-vyper": null,
+    "eth-ape": null,
+    "hypothesis": "6.168.0",
+    "moccasin": "0.4.4",
+    "pytest": "9.1.1",
+    "python": "3.13.3",
+    "titanoboa": "0.2.8",
+    "vyper": "0.4.3"
+  },
+  "log": "/Users/rabuawad/Code/dev-container/moon-mint/bobc/core/fuzz_data/runs/20260927T213025-1790559025759036000/campaign.log",
+  "passed": true,
+  "profile": "standard",
+  "seconds": 157.4,
+  "status": "completed"
+}

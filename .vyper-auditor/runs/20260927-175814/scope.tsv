@@ -1,0 +1,20 @@
+name	core
+mode	default
+files	["src/bobc.vy", "src/vault_engine.vy", "src/cashback.vy", "src/sorted_positions.vy"]
+compiler_context	not verified
+passes_planned	3
+mem_before	0
+mem_after	0
+mem_sha	8eef8b1
+compiler_context	Vyper ~=0.4.3 in source; uv.lock and active .venv resolve 0.4.3; Moccasin 0.4.4; pragma nonreentrancy on in bobc, cashback, vault_engine and off in sorted_positions; no explicit EVM pragma or optimizer override found.
+pass_1_agents	12/12
+mem_after	9
+mem_sha	8eef8b1
+mem_after	9
+mem_sha	8eef8b1
+pass_2_agents	12/12
+mem_after	10
+mem_sha	8eef8b1
+pass_3_agents	12/12
+mem_after	19
+mem_sha	8eef8b1

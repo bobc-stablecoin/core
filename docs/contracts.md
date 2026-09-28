@@ -17,7 +17,7 @@ The rate list from [Redemption](redemption.md). No balances and no oracle. `_ins
 Read it in this order:
 
 1. `open_position` — pull crvUSD, deposit to LlamaLend, require the minimum ratio, mint the debt, link the rate.
-2. `_accrue` — add interest to `debt` and `fees`, and mint that BOBC to the engine. Every state-changing call on a position accrues it first.
+2. `_accrue` — add interest to `debt` and `fees`, and mint that BOBC to the engine. Every state-changing operation on an existing position accrues it first; opening creates a new position without prior interest.
 3. `withdraw_collateral` — LlamaLend yield leaving, stopped at the minimum ratio.
 4. `redeem` and `_redeem_from` — walk from the head, skip anything under the liquidation ratio, burn the caller's principal, return leftover shares to the borrower. When the last principal is paid, accrued fee-only debt is burned from engine surplus and the node is removed.
 5. `liquidate` and `_payout` — the 120% line, the 4% / 1% split, insurance, and `bad_debt`.
