@@ -4,7 +4,7 @@ from eth_keys import keys
 from eth_utils import keccak
 
 from src import bobc
-from tests.conftest import ONE
+from tests.utils.protocol import ONE, ZERO_ADDRESS
 
 
 def test_snekmate_metadata():
@@ -23,7 +23,18 @@ def test_only_bound_engine_can_mint_and_burn():
     holder = boa.env.generate_address("holder")
     attacker = boa.env.generate_address("attacker")
     token = bobc.deploy()
+    with boa.reverts("ownable: caller is not the owner"):
+        token.bind_vault_engine(engine, sender=attacker)
+    with boa.reverts("BOBC: zero engine"):
+        token.bind_vault_engine(ZERO_ADDRESS, sender=deployer)
+    assert token.vault_engine() == ZERO_ADDRESS
+
     token.bind_vault_engine(engine, sender=deployer)
+    assert token.vault_engine() == engine
+
+    with boa.reverts("ownable: caller is not the owner"):
+        token.bind_vault_engine(attacker, sender=deployer)
+    assert token.vault_engine() == engine
 
     with boa.reverts("BOBC: only engine"):
         token.mint(holder, ONE, sender=attacker)
@@ -66,3 +77,23 @@ def test_eip2612_permit_sets_allowance():
 
     assert token.allowance(owner, spender) == amount
     assert token.nonces(owner) == 1
+
+
+def test_permit_rejects_bad_signature_without_consuming_nonce_or_allowance():
+    owner = boa.env.generate_address("permit owner")
+    spender = boa.env.generate_address("permit spender")
+    token = bobc.deploy()
+
+    with boa.reverts():
+        token.permit(
+            owner,
+            spender,
+            42 * ONE,
+            boa.env.timestamp + 3_600,
+            27,
+            bytes(32),
+            bytes(32),
+        )
+
+    assert token.nonces(owner) == 0
+    assert token.allowance(owner, spender) == 0

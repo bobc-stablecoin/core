@@ -4,7 +4,7 @@ import boa
 import pytest
 
 from src import bobc
-from tests.conftest import ONE, RATE_LOW, deploy_engine, open_position
+from tests.utils.protocol import ONE, RATE_LOW, deploy_engine, open_position
 from tests.mocks.deployers import MOCK_ERC20, MOCK_PEG_ORACLE
 
 
@@ -14,8 +14,12 @@ CRVUSD = "0x498Bf2B1e120FeD3ad3D42EA2165E9b73f99C1e5"
 
 @pytest.mark.skipif(not os.getenv("ARBITRUM_RPC"), reason="ARBITRUM_RPC is not set")
 def test_t12_real_vault_open_and_close():
-    """Open a small position against the real Arbitrum lender vault and close it."""
-    boa.fork(os.environ["ARBITRUM_RPC"])
+    """Open and close against the real vault; print the block for replay."""
+    block = os.getenv("ARBITRUM_FORK_BLOCK")
+    block_identifier = int(block) if block is not None else "safe"
+    boa.fork(os.environ["ARBITRUM_RPC"], block_identifier=block_identifier)
+    actual_block = boa.env.evm.vm.get_header().block_number
+    print(f"Arbitrum fork block: {actual_block} (requested: {block_identifier})")
     user = boa.env.generate_address("fork user")
     asset = MOCK_ERC20.at(CRVUSD)
     vault = type("Vault", (), {"address": VAULT})()

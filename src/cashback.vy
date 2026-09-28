@@ -4,6 +4,7 @@
 """
 @title BOBC Cashback
 @license AGPL-3.0-or-later
+@author rafael-abuawad
 @notice Pays transfers plus a rebate from finite, preminted BOBC inventory.
 @dev Payouts are restricted to owner-approved merchant receivers. The contract has no BOBC mint role.
 """
@@ -69,7 +70,6 @@ event MerchantRemoved:
 
 
 @deploy
-@payable
 def __init__(bobc_: address, cashback_bps_: uint256):
     assert bobc_ != empty(address), "Cashback: zero BOBC"
     assert cashback_bps_ <= MAX_CASHBACK_BPS, "Cashback: invalid BPS"

@@ -2,7 +2,7 @@ import boa
 import pytest
 
 from src import cashback as cashback_module
-from tests.conftest import ONE, RATE_MID, ZERO_ADDRESS, open_position
+from tests.utils.protocol import ONE, RATE_MID, ZERO_ADDRESS, open_position
 
 
 def _seed_pool(protocol):
@@ -136,9 +136,15 @@ def test_merchant_add_remove_clear_and_set_keep_membership_synchronized(protocol
     with boa.reverts("Cashback: duplicate merchant"):
         protocol.cashback.set_merchants([carol, carol], sender=protocol.deployer)
     assert tuple(protocol.cashback.get_merchants()) == (alice, bob)
+    assert protocol.cashback.is_merchant(alice)
+    assert protocol.cashback.is_merchant(bob)
+    assert not protocol.cashback.is_merchant(carol)
     with boa.reverts("Cashback: zero merchant"):
         protocol.cashback.set_merchants([carol, ZERO_ADDRESS], sender=protocol.deployer)
     assert tuple(protocol.cashback.get_merchants()) == (alice, bob)
+    assert protocol.cashback.is_merchant(alice)
+    assert protocol.cashback.is_merchant(bob)
+    assert not protocol.cashback.is_merchant(carol)
 
     protocol.cashback.set_merchants([carol], sender=protocol.deployer)
     assert tuple(protocol.cashback.get_merchants()) == (carol,)
@@ -197,3 +203,26 @@ def test_pay_does_not_increase_total_supply(protocol):
     protocol.cashback.pay(protocol.merchant, amount, sender=protocol.user)
 
     assert protocol.bobc.totalSupply() == supply_before
+
+
+def test_rebate_rounding_to_zero_reverts_without_consuming_approval(protocol):
+    _seed_pool(protocol)
+    _approve(protocol)
+    amount = 49
+    _fund_payer(protocol, 100 * ONE)
+    allowance_before = protocol.bobc.allowance(protocol.user, protocol.cashback.address)
+    balances_before = (
+        protocol.bobc.balanceOf(protocol.user),
+        protocol.bobc.balanceOf(protocol.merchant),
+        protocol.bobc.balanceOf(protocol.cashback.address),
+    )
+
+    with boa.reverts("Cashback: zero rebate"):
+        protocol.cashback.pay(protocol.merchant, amount, sender=protocol.user)
+
+    assert protocol.bobc.allowance(protocol.user, protocol.cashback.address) == allowance_before
+    assert balances_before == (
+        protocol.bobc.balanceOf(protocol.user),
+        protocol.bobc.balanceOf(protocol.merchant),
+        protocol.bobc.balanceOf(protocol.cashback.address),
+    )

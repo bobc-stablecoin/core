@@ -1,0 +1,14 @@
+{
+  "extended": {
+    "max_examples": 1000,
+    "stateful_step_count": 100
+  },
+  "smoke": {
+    "max_examples": 10,
+    "stateful_step_count": 20
+  },
+  "standard": {
+    "max_examples": 100,
+    "stateful_step_count": 50
+  }
+}

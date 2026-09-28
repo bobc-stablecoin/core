@@ -4,6 +4,7 @@
 """
 @title Rate-Ordered Positions
 @license AGPL-3.0-or-later
+@author rafael-abuawad
 @notice Doubly linked list of borrower addresses sorted by annual rate.
 @dev Callers pass the neighboring nodes. Same rates keep the order the hints choose,
      which is after existing equals when hints are built by a forward walk.

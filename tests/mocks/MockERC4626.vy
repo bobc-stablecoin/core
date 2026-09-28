@@ -38,7 +38,6 @@ def deposit(assets: uint256, receiver: address) -> uint256:
     shares: uint256 = assets
     if self.totalSupply > 0 and vault_assets > 0:
         shares = assets * self.totalSupply // vault_assets
-    assert shares > 0, "Vault: zero shares"
     assert extcall IERC20(asset).transferFrom(msg.sender, self, assets), "Vault: transfer failed"
     self.totalSupply += shares
     self.balanceOf[receiver] += shares

@@ -1,7 +1,8 @@
 import boa
 
 from src import bobc
-from tests.conftest import (
+from tests.utils.protocol import (
+    LIQ_CR,
     MAX_UINT256,
     MIN_CR,
     ONE,
@@ -27,6 +28,46 @@ def test_open_issues_debt_at_minimum_ratio(protocol):
     assert protocol.engine.collateral_assets(protocol.user) == assets
     assert protocol.engine.collateral_ratio(protocol.user) >= MIN_CR
     assert_books(protocol.engine, protocol.bobc)
+
+
+def test_open_rejects_debt_one_wei_above_the_minimum_ratio(protocol):
+    assets = 1_430 * ONE
+    debt = 1_000 * ONE + 1
+    prev, nxt = hints_for(protocol.engine, RATE_LOW)
+
+    with boa.reverts("Engine: collateral ratio"):
+        protocol.engine.open_position(
+            assets, debt, RATE_LOW, prev, nxt, sender=protocol.user
+        )
+
+    assert not protocol.engine.position(protocol.user)[5]
+    assert protocol.engine.total_debt() == 0
+    assert protocol.bobc.totalSupply() == 0
+
+
+def test_add_collateral_rejects_a_zero_share_vault_deposit():
+    borrower = boa.env.generate_address("zero-share borrower")
+    asset = MOCK_ERC20.deploy("Curve USD", "crvUSD")
+    vault = MOCK_ERC4626.deploy(asset.address)
+    oracle = MOCK_PEG_ORACLE.deploy(ONE)
+    token = bobc.deploy()
+    engine = deploy_engine(token, vault, asset, oracle, max_collateral=10**25)
+    token.bind_vault_engine(engine.address)
+    asset.mint(borrower, 2_000 * ONE)
+    asset.approve(engine.address, MAX_UINT256, sender=borrower)
+    open_position(engine, 1_430 * ONE, RATE_LOW, borrower)
+    asset.mint(vault.address, 10**24)
+    position_before = engine.position(borrower)
+    user_balance_before = asset.balanceOf(borrower)
+    vault_balance_before = asset.balanceOf(vault.address)
+
+    with boa.reverts("Engine: zero shares"):
+        engine.add_collateral(1, sender=borrower)
+
+    assert engine.position(borrower) == position_before
+    assert asset.balanceOf(borrower) == user_balance_before
+    assert asset.balanceOf(vault.address) == vault_balance_before
+    assert_books(engine, token)
 
 
 def test_close_returns_collateral(protocol):
@@ -68,6 +109,24 @@ def test_interest_mints_matching_surplus_and_close_clears_it(protocol):
     assert_books(protocol.engine, protocol.bobc)
 
 
+def test_interest_uses_the_contracts_two_stage_integer_rounding(protocol):
+    debt = open_position(protocol.engine, 1_430 * ONE, 10**17, protocol.user)
+    elapsed = 123_456
+    boa.env.time_travel(seconds=elapsed)
+    protocol.oracle.setUpdatedAt(boa.env.timestamp)
+
+    expected_interest = debt * 10**17 // ONE * elapsed // YEAR
+    assert protocol.engine.pending_interest(protocol.user) == expected_interest
+
+    protocol.engine.add_collateral(ONE, sender=protocol.user)
+
+    position = protocol.engine.position(protocol.user)
+    assert position[1] == debt + expected_interest
+    assert position[2] == expected_interest
+    assert protocol.engine.surplus() == expected_interest
+    assert_books(protocol.engine, protocol.bobc)
+
+
 def test_yield_withdraw_stops_on_the_minimum_ratio(protocol):
     """LlamaLend yield can be withdrawn above MIN_CR and not through it."""
     assets = 1_430 * ONE
@@ -85,17 +144,25 @@ def test_yield_withdraw_stops_on_the_minimum_ratio(protocol):
     assert_books(protocol.engine, protocol.bobc)
 
 
-def test_rate_move_liquidates_only_below_the_line(protocol):
-    """A stronger BOB lowers one position's ratio and does not freeze a healthy one."""
+def test_healthy_position_cannot_be_liquidated(protocol):
     assets = 1_430 * ONE
     open_position(protocol.engine, assets, RATE_LOW, protocol.user)
     protocol.oracle.setRate(95 * 10**16)
 
     with boa.reverts("Engine: healthy"):
         protocol.engine.liquidate(protocol.user, sender=protocol.merchant)
-    protocol.engine.add_collateral(ONE, sender=protocol.user)
 
+    assert protocol.engine.position(protocol.user)[5]
+    assert protocol.engine.bad_debt() == 0
+    assert_books(protocol.engine, protocol.bobc)
+
+
+def test_undercollateralized_position_can_be_liquidated(protocol):
+    """A stronger BOB lowers the ratio under LIQ_CR and allows liquidation."""
+    assets = 1_430 * ONE
+    open_position(protocol.engine, assets, RATE_LOW, protocol.user)
     protocol.oracle.setRate(80 * 10**16)
+    protocol.engine.add_collateral(ONE, sender=protocol.user)
     debt = protocol.engine.position(protocol.user)[1]
     protocol.bobc.transfer(protocol.merchant, debt, sender=protocol.user)
     before = protocol.asset.balanceOf(protocol.merchant)
@@ -105,6 +172,41 @@ def test_rate_move_liquidates_only_below_the_line(protocol):
     assert not protocol.engine.position(protocol.user)[5]
     assert protocol.engine.insurance_assets() > 0
     assert protocol.asset.balanceOf(protocol.merchant) > before
+    assert_books(protocol.engine, protocol.bobc)
+
+
+def test_liquidation_rejects_position_at_exact_threshold(protocol):
+    protocol.oracle.setRate(12 * ONE // 10)
+    protocol.engine.open_position(
+        6 * ONE,
+        5 * ONE,
+        RATE_LOW,
+        ZERO_ADDRESS,
+        ZERO_ADDRESS,
+        sender=protocol.user,
+    )
+    protocol.oracle.setRate(ONE)
+    assert protocol.engine.collateral_ratio(protocol.user) == LIQ_CR
+
+    with boa.reverts("Engine: healthy"):
+        protocol.engine.liquidate(protocol.user, sender=protocol.merchant)
+
+    assert protocol.engine.position(protocol.user)[5]
+    assert_books(protocol.engine, protocol.bobc)
+
+
+def test_liquidation_rejects_caller_without_required_bobc(protocol):
+    debt = open_position(protocol.engine, 1_430 * ONE, RATE_LOW, protocol.user)
+    protocol.oracle.setRate(8 * 10**17)
+    before = protocol.engine.position(protocol.user)
+
+    with boa.reverts():
+        protocol.engine.liquidate(protocol.user, sender=protocol.merchant)
+
+    assert protocol.engine.position(protocol.user) == before
+    assert protocol.engine.total_debt() == debt
+    assert protocol.engine.bad_debt() == 0
+    assert protocol.asset.balanceOf(protocol.merchant) == 0
     assert_books(protocol.engine, protocol.bobc)
 
 
@@ -180,6 +282,23 @@ def test_stale_oracle_blocks_state_changes(protocol):
             call()
 
 
+def test_zero_and_future_oracle_samples_are_rejected(protocol):
+    open_position(protocol.engine, 1_430 * ONE, RATE_LOW, protocol.user)
+    before = protocol.engine.position(protocol.user)
+
+    protocol.oracle.setRate(0)
+    with boa.reverts("Engine: zero rate"):
+        protocol.engine.add_collateral(ONE, sender=protocol.user)
+    assert protocol.engine.position(protocol.user) == before
+
+    protocol.oracle.setRate(ONE)
+    protocol.oracle.setUpdatedAt(boa.env.timestamp + 1)
+    with boa.reverts("Engine: future oracle"):
+        protocol.engine.add_collateral(ONE, sender=protocol.user)
+    assert protocol.engine.position(protocol.user) == before
+    assert_books(protocol.engine, protocol.bobc)
+
+
 def test_max_collateral_blocks_another_deposit():
     """Supplied crvUSD cannot pass MAX_COLLATERAL_ASSETS."""
     account = boa.env.generate_address("account")
@@ -196,9 +315,12 @@ def test_max_collateral_blocks_another_deposit():
         open_position(engine, 101 * ONE, RATE_LOW, account)
 
 
-def test_bad_hint_reverts_and_lower_rate_is_redeemed_first(protocol):
-    """Insertion hints must match the list, and redemption starts at the cheapest rate."""
-    alice_debt = open_position(protocol.engine, 1_430 * ONE, RATE_LOW, protocol.user)
+def test_bad_insertion_hint_reverts_without_mutating_the_list(protocol):
+    open_position(protocol.engine, 1_430 * ONE, RATE_LOW, protocol.user)
+    before_head = protocol.engine.head()
+    before_next = protocol.engine.next(protocol.user)
+    before_debt = protocol.engine.total_debt()
+
     with boa.reverts("List: bad hint"):
         protocol.engine.open_position(
             1_430 * ONE,
@@ -208,6 +330,16 @@ def test_bad_hint_reverts_and_lower_rate_is_redeemed_first(protocol):
             ZERO_ADDRESS,
             sender=protocol.reserve_provider,
         )
+
+    assert protocol.engine.head() == before_head
+    assert protocol.engine.next(protocol.user) == before_next
+    assert protocol.engine.total_debt() == before_debt
+    assert not protocol.engine.position(protocol.reserve_provider)[5]
+    assert_books(protocol.engine, protocol.bobc)
+
+
+def test_lower_rate_is_redeemed_first(protocol):
+    alice_debt = open_position(protocol.engine, 1_430 * ONE, RATE_LOW, protocol.user)
     dan_debt = open_position(protocol.engine, 1_430 * ONE, RATE_MID, protocol.reserve_provider)
     protocol.bobc.transfer(protocol.merchant, 10 * ONE, sender=protocol.user)
 
@@ -217,6 +349,34 @@ def test_bad_hint_reverts_and_lower_rate_is_redeemed_first(protocol):
     assert protocol.engine.position(protocol.user)[1] == alice_debt - 10 * ONE
     assert protocol.engine.position(protocol.reserve_provider)[1] == dan_debt
     assert_books(protocol.engine, protocol.bobc)
+
+
+def test_set_rate_rejects_hints_that_were_stale_before_unlink(protocol):
+    open_position(protocol.engine, 1_430 * ONE, RATE_LOW, protocol.user)
+    open_position(protocol.engine, 1_430 * ONE, RATE_MID, protocol.reserve_provider)
+    before = protocol.engine.position(protocol.reserve_provider)
+
+    with boa.reverts("List: bad hint"):
+        protocol.engine.set_rate(
+            RATE_LOW,
+            ZERO_ADDRESS,
+            ZERO_ADDRESS,
+            sender=protocol.reserve_provider,
+        )
+
+    assert protocol.engine.position(protocol.reserve_provider) == before
+    assert protocol.engine.head() == protocol.user
+    assert protocol.engine.next(protocol.user) == protocol.reserve_provider
+    assert_books(protocol.engine, protocol.bobc)
+
+
+def test_equal_rates_keep_the_order_selected_by_hints(protocol):
+    open_position(protocol.engine, 1_430 * ONE, RATE_LOW, protocol.user)
+    open_position(protocol.engine, 1_430 * ONE, RATE_LOW, protocol.reserve_provider)
+
+    assert protocol.engine.head() == protocol.user
+    assert protocol.engine.next(protocol.user) == protocol.reserve_provider
+    assert protocol.engine.next(protocol.reserve_provider) == ZERO_ADDRESS
 
 
 def test_redemption_returns_the_borrower_excess(protocol):
@@ -232,6 +392,19 @@ def test_redemption_returns_the_borrower_excess(protocol):
     assert protocol.asset.balanceOf(protocol.merchant) == debt
     assert protocol.asset.balanceOf(protocol.user) == borrower_before + assets - debt
     assert protocol.engine.head() == ZERO_ADDRESS
+    assert_books(protocol.engine, protocol.bobc)
+
+
+def test_redemption_rounds_assets_down_at_the_oracle_rate(protocol):
+    debt = open_position(protocol.engine, 1_430 * ONE, RATE_LOW, protocol.user)
+    protocol.oracle.setRate(3 * ONE)
+    protocol.bobc.transfer(protocol.merchant, ONE, sender=protocol.user)
+
+    assets_out = protocol.engine.redeem(ONE, 1, sender=protocol.merchant)
+
+    assert assets_out == ONE // 3
+    assert protocol.engine.position(protocol.user)[1] == debt - ONE
+    assert protocol.bobc.balanceOf(protocol.merchant) == 0
     assert_books(protocol.engine, protocol.bobc)
 
 
@@ -254,6 +427,95 @@ def test_partial_redemption_leaves_the_debt_floor():
 
     assert assets_out == 900 * ONE
     assert engine.position(account)[1] == 100 * ONE
+    assert_books(engine, token)
+
+
+def test_repay_cannot_leave_a_fee_only_position_linked():
+    """The final principal must be cleared through close_position."""
+    borrower = boa.env.generate_address("fee-only repay borrower")
+    asset = MOCK_ERC20.deploy("Curve USD", "crvUSD")
+    vault = MOCK_ERC4626.deploy(asset.address)
+    oracle = MOCK_PEG_ORACLE.deploy(ONE)
+    token = bobc.deploy()
+    engine = deploy_engine(token, vault, asset, oracle, min_debt=1_000 * ONE)
+    token.bind_vault_engine(engine.address)
+    collateral = 28_600 * ONE
+    principal = 20_000 * ONE
+    asset.mint(borrower, collateral)
+    asset.approve(engine.address, MAX_UINT256, sender=borrower)
+    prev, nxt = hints_for(engine, 25 * 10**16)
+    engine.open_position(collateral, principal, 25 * 10**16, prev, nxt, sender=borrower)
+
+    boa.env.time_travel(seconds=73 * 24 * 60 * 60)
+    oracle.setUpdatedAt(boa.env.timestamp)
+    fees = engine.pending_interest(borrower)
+    assert fees == 1_000 * ONE
+    position_before = engine.position(borrower)
+    debt_before = engine.total_debt()
+    surplus_before = engine.surplus()
+    borrower_bobc_before = token.balanceOf(borrower)
+
+    with boa.reverts("Engine: close position"):
+        engine.repay(principal, sender=borrower)
+
+    assert engine.position(borrower) == position_before
+    assert engine.total_debt() == debt_before
+    assert engine.surplus() == surplus_before
+    assert token.balanceOf(borrower) == borrower_bobc_before
+    assert engine.position(borrower)[1] > engine.position(borrower)[2]
+
+    engine.close_position(sender=borrower)
+
+    assert not engine.position(borrower)[5]
+    assert engine.head() == ZERO_ADDRESS
+    assert token.balanceOf(borrower) == 0
+    assert asset.balanceOf(borrower) == collateral
+    assert engine.total_debt() == engine.surplus() == 0
+    assert_books(engine, token)
+
+
+def test_final_principal_guard_prevents_zero_cost_liquidation():
+    """A liquidator must pay principal for collateral after fees accrue."""
+    borrower = boa.env.generate_address("zero-cost liquidation borrower")
+    liquidator = boa.env.generate_address("zero-cost liquidator")
+    asset = MOCK_ERC20.deploy("Curve USD", "crvUSD")
+    vault = MOCK_ERC4626.deploy(asset.address)
+    oracle = MOCK_PEG_ORACLE.deploy(13 * ONE)
+    token = bobc.deploy()
+    engine = deploy_engine(token, vault, asset, oracle, min_debt=1_000 * ONE)
+    token.bind_vault_engine(engine.address)
+
+    collateral = 1_100 * ONE
+    asset.mint(borrower, collateral)
+    asset.approve(engine.address, MAX_UINT256, sender=borrower)
+    principal = open_position(engine, collateral, 25 * 10**16, borrower, rate=13 * ONE)
+    assert principal == 10_000 * ONE
+
+    boa.env.time_travel(seconds=5 * YEAR)
+    oracle.setUpdatedAt(boa.env.timestamp)
+    assert engine.pending_interest(borrower) == 12_500 * ONE
+    position_before = engine.position(borrower)
+    total_debt_before = engine.total_debt()
+    surplus_before = engine.surplus()
+    supply_before = token.totalSupply()
+
+    with boa.reverts("Engine: close position"):
+        engine.repay(principal, sender=borrower)
+
+    assert engine.position(borrower) == position_before
+    assert engine.total_debt() == total_debt_before
+    assert engine.surplus() == surplus_before
+
+    # Before the guard, this fee-only state let liquidation pay its caller zero BOBC.
+    # The intact position still has principal, so a caller with no BOBC cannot seize it.
+    with boa.reverts():
+        engine.liquidate(borrower, sender=liquidator)
+
+    assert engine.position(borrower) == position_before
+    assert engine.total_debt() == total_debt_before
+    assert engine.surplus() == surplus_before
+    assert token.totalSupply() == supply_before
+    assert asset.balanceOf(liquidator) == 0
     assert_books(engine, token)
 
 

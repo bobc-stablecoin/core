@@ -5,6 +5,7 @@
 @title BOBC Token
 @custom:contract-name bobc
 @license GNU Affero General Public License v3.0 only
+@author rafael-abuawad
 @notice Snekmate ERC-20 and EIP-2612 token with one VaultEngine minter and burner.
 @dev The deployer binds the VaultEngine exactly once, then ownership is renounced.
 """
@@ -67,7 +68,6 @@ event VaultEngineBound:
 
 
 @deploy
-@payable
 def __init__():
     """Initialize Snekmate ERC-20 metadata, permit domain, and temporary ownership."""
     ow.__init__()

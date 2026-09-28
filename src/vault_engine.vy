@@ -4,6 +4,7 @@
 """
 @title BOBC Vault Engine
 @license AGPL-3.0-or-later
+@author rafael-abuawad
 @notice Collateralized debt engine: crvUSD goes to LlamaLend, BOBC is per-position debt.
 @dev Interest is minted to this contract and included in debt. Supply stays equal to
      total debt plus bad debt. Closing or liquidating burns that interest from the
@@ -167,7 +168,6 @@ event Liquidated:
 
 
 @deploy
-@payable
 def __init__(
     bobc_: address,
     vault_: address,
@@ -299,7 +299,7 @@ def borrow(amount: uint256):
 
 @external
 def repay(amount: uint256):
-    """Burn principal BOBC and leave at least the minimum debt outstanding."""
+    """Burn principal BOBC but keep principal in every linked position."""
     assert amount > 0, "Engine: zero BOBC"
     self._checked_rate()
     self._accrue(msg.sender)
@@ -307,6 +307,7 @@ def repay(amount: uint256):
     principal: uint256 = pos.debt - pos.fees
     assert amount <= principal, "Engine: exceeds principal"
     assert pos.debt - amount >= MIN_DEBT, "Engine: debt floor"
+    assert amount < principal, "Engine: close position"
     pos.debt -= amount
     self._positions[msg.sender] = pos
     self.total_debt -= amount
@@ -601,6 +602,7 @@ def _pull_deposit(assets: uint256) -> uint256:
     """Move crvUSD from the caller into the lender vault and count the new shares."""
     assert extcall IERC20(ASSET).transferFrom(msg.sender, self, assets), "Engine: transfer failed"
     shares: uint256 = extcall IERC4626(VAULT).deposit(assets, self)
+    assert shares > 0, "Engine: zero shares"
     self.total_shares += shares
     return shares
 

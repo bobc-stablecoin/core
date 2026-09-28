@@ -179,3 +179,10 @@ lib/
 era_test_node.log
 anvil-zksync.log
 .DS_Store
+
+# Fyzz run data. Selected campaign evidence can be force-added for review.
+fuzz_data/pytest-cache/
+fuzz_data/hypothesis/
+fuzz_data/reachability/
+fuzz_data/traces/
+fuzz_data/runs/
