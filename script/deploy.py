@@ -6,7 +6,7 @@ from src import bobc, cashback, vault_engine
 
 ARBITRUM_VAULT = "0xeEaF2ccB73A01deb38Eca2947d963D64CfDe6A32"
 ARBITRUM_CRVUSD = "0x498Bf2B1e120FeD3ad3D42EA2165E9b73f99C1e5"
-ONE = 10**18
+WAD = 10**18
 
 
 def deploy() -> VyperContract:
@@ -24,9 +24,9 @@ def deploy() -> VyperContract:
         int(os.getenv("MIN_CR", str(143 * 10**16))),
         int(os.getenv("LIQ_CR", str(120 * 10**16))),
         int(os.getenv("PENALTY_BPS", "500")),
-        int(os.getenv("MAX_COLLATERAL_ASSETS", str(1_000_000 * ONE))),
+        int(os.getenv("MAX_COLLATERAL_ASSETS", str(1_000_000 * WAD))),
         int(os.getenv("MAX_STALENESS", "3600")),
-        int(os.getenv("MIN_DEBT", str(1_000 * ONE))),
+        int(os.getenv("MIN_DEBT", str(1_000 * WAD))),
         int(os.getenv("MIN_ANNUAL_RATE", str(5 * 10**15))),
         int(os.getenv("MAX_ANNUAL_RATE", str(25 * 10**16))),
     )
