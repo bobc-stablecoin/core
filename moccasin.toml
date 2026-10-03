@@ -25,3 +25,12 @@ chain_id = 42161
 fork = true
 prompt_live = false
 save_to_db = false
+
+[networks.arbitrum-sepolia]
+url = "https://sepolia-rollup.arbitrum.io/rpc"
+chain_id = 421614
+fork = false
+save_to_db = true
+explorer_type = "blockscout"
+explorer_uri = "https://arbitrum-sepolia.blockscout.com"
+explorer_api_key = "$BLOCKSCOUT_API_KEY"

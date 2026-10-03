@@ -103,6 +103,49 @@ the penalty. `MIN_CR` of 143% is the 9.1-versus-13 borrow cushion: at 13 BOB per
 `deployments/arbitrum.json` is a publication schema. Replace `null` contract addresses and transaction hashes only
 after an actual deployment.
 
+### Mock deployment
+
+`script/deploy_mock.py` deploys the same BOBC, Cashback, and VaultEngine stack using a mock crvUSD token,
+an ERC-4626 lender vault, and an oracle fixed at **12.75 BOB per USD** (18 decimals). The oracle returns
+the current block timestamp on every read, so it stays fresh without an updater. This script reuses the
+token and vault in `tests/mocks` and accepts the same optional risk and cashback settings as `deploy.py`;
+`PEG_ORACLE_ADDRESS` is not required.
+
+```bash
+# Ephemeral local deployment
+uv run mox run deploy_mock --network pyevm
+
+# Persistent local deployment, with Anvil running on port 8545
+uv run mox run deploy_mock --network anvil
+
+# Testnet deployment using a funded Moccasin keystore account
+uv run mox run deploy_mock --network arbitrum-sepolia --account <account-name>
+```
+
+The script prints `CRVUSD`, `VAULT`, `PEG_ORACLE`, `BOBC`, `CASHBACK`, and `VAULT_ENGINE` addresses.
+Anyone can call mock crvUSD's `mint(receiver, amount)` to fund a test account. Approve the engine to spend
+that crvUSD before opening a position. The default minimum debt is 1,000 BOBC; at 12.75 BOB per USD,
+120 crvUSD is enough collateral to open that debt. Cashback still needs approved merchants and BOBC funding.
+These mocks are for development and testnets only.
+
+### Blockscout verification
+
+`script/verify.py` hardcodes the six deployed mock contract addresses on Arbitrum Sepolia and verifies
+them using the Blockscout explorer configured in `moccasin.toml`:
+
+```bash
+export BLOCKSCOUT_API_KEY="<your-blockscout-api-key>"
+uv run mox run verify --network arbitrum-sepolia
+```
+
+You can also set `BLOCKSCOUT_API_KEY` in `core/.env`, which Moccasin loads automatically. The network's
+`explorer_api_key` reads this environment variable, and verification stops if it is missing.
+No signing account is required. The script attaches to existing contracts, submits their
+Vyper standard JSON sources (including imported modules), and waits for verification. Blockscout detects
+constructor arguments from the deployment transaction. Already verified contracts are skipped; failures
+are reported individually and make the command exit unsuccessfully. Keep the source files and compiler
+settings consistent with the deployment when running verification.
+
 ## Security status
 
 Unaudited. Borrowers take the BOB-per-USD move on their own collateral ratio. Redemption is the holder exit.
