@@ -13,6 +13,12 @@ prompt_live = false
 save_to_db = false
 chain_id = 31337
 
+[networks.arbitrum]
+url = "$ARBITRUM_RPC"
+chain_id = 42161
+fork = false
+save_to_db = true
+
 [networks.arbitrum-fork]
 url = "$ARBITRUM_RPC"
 chain_id = 42161
